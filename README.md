@@ -187,8 +187,29 @@ ethWallets, err := client.Wallets().List(ctx, &privy.WalletListOptions{
     ChainType: privy.ChainTypeEthereum, // optional
 })
 
-// Get transaction history
-txs, err := client.Wallets().GetTransactions(ctx, "wallet-id", nil)
+// Get transaction history (chain and asset are required)
+txs, err := client.Wallets().GetTransactions(ctx, "wallet-id", &privy.GetTransactionsOptions{
+    Chain: "ethereum",
+    Asset: []string{"eth", "usdc"},
+    Limit: 50,
+})
+
+// Get a specific transaction by hash
+tx, err := client.Wallets().GetTransactionByHash(
+    ctx,
+    "wallet-id",
+    "ethereum",
+    []string{"eth"},
+    "0xabc123...",
+)
+
+// Filter transactions by hash using GetTransactions
+txs, err := client.Wallets().GetTransactions(ctx, "wallet-id", &privy.GetTransactionsOptions{
+    Chain:  "solana",
+    Asset:  []string{"sol", "usdc"},
+    TxHash: "5j7s...", // Filter by specific transaction hash
+    Limit:  1,
+})
 ```
 
 ### Ethereum Signing
@@ -417,6 +438,24 @@ handler.OnTransactionCompleted(func(e *privy.TransactionEvent) {
     fmt.Printf("Transaction completed: %s\n", e.TransactionID)
 })
 
+// Handle wallet fund events (deposits/withdrawals)
+handler.OnWalletFundsDeposited(func(e *privy.WalletFundsEvent) {
+    fmt.Printf("Funds deposited to wallet %s: %s %s from %s\n",
+        e.WalletID, e.Amount, e.Asset.Type, e.Sender)
+    fmt.Printf("Transaction hash: %s\n", e.TransactionHash)
+})
+
+handler.OnWalletFundsWithdrawn(func(e *privy.WalletFundsEvent) {
+    fmt.Printf("Funds withdrawn from wallet %s: %s %s to %s\n",
+        e.WalletID, e.Amount, e.Asset.Type, e.Recipient)
+    fmt.Printf("Transaction hash: %s\n", e.TransactionHash)
+})
+
+// Handle MFA events
+handler.OnMFAEnabled(func(e *privy.MFAEvent) {
+    fmt.Printf("MFA enabled for user %s: %s\n", e.UserID, e.Method)
+})
+
 // Use as HTTP handler
 http.Handle("/webhook", handler)
 
@@ -447,15 +486,41 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 ```
 
 **Supported Webhook Events:**
+
+**User Events:**
 - `user.created` - New user registered
 - `user.updated` - User profile updated
 - `user.deleted` - User deleted
 - `user.authenticated` - User logged in
+- `user.linked_account` - Account linked to user
+- `user.unlinked_account` - Account unlinked from user
+- `user.updated_account` - User account updated
+- `user.transferred_account` - Account transferred between users
+- `user.wallet_created` - Wallet created for user
+
+**Wallet Events:**
 - `wallet.created` - New wallet created
 - `wallet.transferred` - Wallet ownership transferred
+- `wallet.funds_deposited` - Funds deposited into wallet
+- `wallet.funds_withdrawn` - Funds withdrawn from wallet
+- `wallet.private_key_export` - Private key exported
+- `wallet.recovery_setup` - Recovery method set up
+- `wallet.recovered` - Wallet recovered
+
+**Transaction Events:**
 - `transaction.created` - Transaction initiated
+- `transaction.broadcasted` - Transaction broadcasted to network
+- `transaction.confirmed` - Transaction confirmed on chain
 - `transaction.completed` - Transaction succeeded
+- `transaction.execution_reverted` - Transaction execution reverted
+- `transaction.still_pending` - Transaction still pending
 - `transaction.failed` - Transaction failed
+- `transaction.replaced` - Transaction replaced
+- `transaction.provider_error` - Provider error occurred
+
+**MFA Events:**
+- `mfa.enabled` - MFA enabled for user
+- `mfa.disabled` - MFA disabled for user
 
 ## Supported Chain Types
 

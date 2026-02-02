@@ -384,3 +384,125 @@ func TestWebhookHandler_HandleRequest_DispatchesEvents(t *testing.T) {
 		t.Errorf("Handler received user_id = %v, want %v", receivedUserID, "did:privy:test123")
 	}
 }
+
+func TestWebhookHandler_WalletFundsEvents(t *testing.T) {
+	handler := NewWebhookHandler("test-secret")
+
+	// Test wallet.funds_deposited
+	var depositedEvent *WalletFundsEvent
+	handler.OnWalletFundsDeposited(func(e *WalletFundsEvent) {
+		depositedEvent = e
+	})
+
+	depositData := map[string]any{
+		"id":         "evt_deposit_123",
+		"type":       "wallet.funds_deposited",
+		"created_at": time.Now().Unix(),
+		"app_id":     "test-app",
+		"data": map[string]any{
+			"wallet_id":        "wallet_123",
+			"idempotency_key":  "idempotency_123",
+			"caip2":            "eip155:1",
+			"asset": map[string]any{
+				"type":    "native",
+				"address": "",
+			},
+			"amount":           "1000000000000000000",
+			"transaction_hash": "0xabc123",
+			"sender":           "0xsender123",
+			"recipient":        "0xrecipient123",
+			"block": map[string]any{
+				"number": 12345,
+			},
+		},
+	}
+
+	body, _ := json.Marshal(depositData)
+	req := createSignedWebhookRequest(t, "test-secret", body)
+
+	_, err := handler.HandleRequest(req)
+	if err != nil {
+		t.Fatalf("HandleRequest() error = %v", err)
+	}
+
+	if depositedEvent == nil {
+		t.Fatal("OnWalletFundsDeposited handler was not called")
+	}
+
+	if depositedEvent.WalletID != "wallet_123" {
+		t.Errorf("WalletID = %v, want %v", depositedEvent.WalletID, "wallet_123")
+	}
+
+	if depositedEvent.Amount != "1000000000000000000" {
+		t.Errorf("Amount = %v, want %v", depositedEvent.Amount, "1000000000000000000")
+	}
+
+	if depositedEvent.Asset.Type != "native" {
+		t.Errorf("Asset.Type = %v, want %v", depositedEvent.Asset.Type, "native")
+	}
+
+	if depositedEvent.Sender != "0xsender123" {
+		t.Errorf("Sender = %v, want %v", depositedEvent.Sender, "0xsender123")
+	}
+
+	if depositedEvent.Recipient != "0xrecipient123" {
+		t.Errorf("Recipient = %v, want %v", depositedEvent.Recipient, "0xrecipient123")
+	}
+
+	if depositedEvent.TransactionHash != "0xabc123" {
+		t.Errorf("TransactionHash = %v, want %v", depositedEvent.TransactionHash, "0xabc123")
+	}
+
+	// Test wallet.funds_withdrawn
+	var withdrawnEvent *WalletFundsEvent
+	handler.OnWalletFundsWithdrawn(func(e *WalletFundsEvent) {
+		withdrawnEvent = e
+	})
+
+	withdrawData := map[string]any{
+		"id":         "evt_withdraw_123",
+		"type":       "wallet.funds_withdrawn",
+		"created_at": time.Now().Unix(),
+		"app_id":     "test-app",
+		"data": map[string]any{
+			"wallet_id":        "wallet_456",
+			"idempotency_key":  "idempotency_456",
+			"caip2":            "solana:1",
+			"asset": map[string]any{
+				"type": "spl",
+				"mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+			},
+			"amount":           "5000000",
+			"transaction_hash": "5j7s8h9...",
+			"sender":           "sender_sol_address",
+			"recipient":        "recipient_sol_address",
+			"block": map[string]any{
+				"number": 98765,
+			},
+		},
+	}
+
+	body, _ = json.Marshal(withdrawData)
+	req = createSignedWebhookRequest(t, "test-secret", body)
+
+	_, err = handler.HandleRequest(req)
+	if err != nil {
+		t.Fatalf("HandleRequest() error = %v", err)
+	}
+
+	if withdrawnEvent == nil {
+		t.Fatal("OnWalletFundsWithdrawn handler was not called")
+	}
+
+	if withdrawnEvent.WalletID != "wallet_456" {
+		t.Errorf("WalletID = %v, want %v", withdrawnEvent.WalletID, "wallet_456")
+	}
+
+	if withdrawnEvent.Asset.Type != "spl" {
+		t.Errorf("Asset.Type = %v, want %v", withdrawnEvent.Asset.Type, "spl")
+	}
+
+	if withdrawnEvent.Asset.Mint != "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" {
+		t.Errorf("Asset.Mint = %v, want %v", withdrawnEvent.Asset.Mint, "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+	}
+}

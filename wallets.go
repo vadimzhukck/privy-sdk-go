@@ -181,22 +181,57 @@ func (s *WalletsService) GetBalance(ctx context.Context, walletID string, opts *
 	return &balance, nil
 }
 
+// GetTransactionsOptions represents options for getting wallet transactions.
+type GetTransactionsOptions struct {
+	Chain  string   // Required: blockchain network (ethereum, arbitrum, base, solana, etc.)
+	Asset  []string // Required: token types (usdc, eth, sol, etc.) - max 4 assets
+	TxHash string   // Optional: filter by specific transaction hash
+	Cursor string   // Optional: pagination cursor
+	Limit  int      // Optional: maximum number of transactions per page (max 100)
+}
+
 // GetTransactions retrieves the transaction history for a wallet.
-func (s *WalletsService) GetTransactions(ctx context.Context, walletID string, opts *ListOptions) (*PaginatedResponse[Transaction], error) {
+// Chain and Asset parameters are required by the Privy API.
+func (s *WalletsService) GetTransactions(ctx context.Context, walletID string, opts *GetTransactionsOptions) (*PaginatedResponse[Transaction], error) {
 	u := fmt.Sprintf("%s/wallets/%s/transactions", s.client.baseURL, walletID)
 
-	if opts != nil {
-		params := url.Values{}
-		if opts.Cursor != "" {
-			params.Set("cursor", opts.Cursor)
-		}
-		if opts.Limit > 0 {
-			params.Set("limit", strconv.Itoa(opts.Limit))
-		}
-		if len(params) > 0 {
-			u = u + "?" + params.Encode()
-		}
+	if opts == nil {
+		return nil, fmt.Errorf("GetTransactionsOptions is required (chain and asset parameters are mandatory)")
 	}
+
+	params := url.Values{}
+
+	// Required parameters
+	if opts.Chain == "" {
+		return nil, fmt.Errorf("chain parameter is required")
+	}
+	params.Set("chain", opts.Chain)
+
+	if len(opts.Asset) == 0 {
+		return nil, fmt.Errorf("asset parameter is required (at least one asset)")
+	}
+	if len(opts.Asset) > 4 {
+		return nil, fmt.Errorf("asset parameter supports maximum 4 assets")
+	}
+	for _, asset := range opts.Asset {
+		params.Add("asset", asset)
+	}
+
+	// Optional parameters
+	if opts.TxHash != "" {
+		params.Set("tx_hash", opts.TxHash)
+	}
+	if opts.Cursor != "" {
+		params.Set("cursor", opts.Cursor)
+	}
+	if opts.Limit > 0 {
+		if opts.Limit > 100 {
+			return nil, fmt.Errorf("limit cannot exceed 100")
+		}
+		params.Set("limit", strconv.Itoa(opts.Limit))
+	}
+
+	u = u + "?" + params.Encode()
 
 	var resp PaginatedResponse[Transaction]
 	if err := s.client.doRequest(ctx, "GET", u, nil, &resp); err != nil {
@@ -240,4 +275,26 @@ func (s *WalletsService) GetTransaction(ctx context.Context, transactionID strin
 	}
 
 	return &tx, nil
+}
+
+// GetTransactionByHash retrieves a specific transaction by wallet ID and transaction hash.
+// This is a convenience method that filters GetTransactions by tx_hash.
+func (s *WalletsService) GetTransactionByHash(ctx context.Context, walletID, chain string, assets []string, txHash string) (*Transaction, error) {
+	opts := &GetTransactionsOptions{
+		Chain:  chain,
+		Asset:  assets,
+		TxHash: txHash,
+		Limit:  1,
+	}
+
+	resp, err := s.GetTransactions(ctx, walletID, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Data) == 0 {
+		return nil, fmt.Errorf("transaction not found: %s", txHash)
+	}
+
+	return &resp.Data[0], nil
 }

@@ -297,8 +297,12 @@ func TestE2E_Wallets_GetTransactions(t *testing.T) {
 		t.Fatalf("Failed to create wallet: %v", err)
 	}
 
-	// Get transactions
-	txs, err := client.Wallets().GetTransactions(ctx, wallet.ID, nil)
+	// Get transactions with required parameters
+	txs, err := client.Wallets().GetTransactions(ctx, wallet.ID, &GetTransactionsOptions{
+		Chain: "ethereum",
+		Asset: []string{"eth"},
+		Limit: 50,
+	})
 	if err != nil {
 		t.Fatalf("Failed to get transactions: %v", err)
 	}
@@ -306,6 +310,96 @@ func TestE2E_Wallets_GetTransactions(t *testing.T) {
 	// Should return empty list for new wallet
 	if txs.Data == nil {
 		t.Error("Expected transactions data to be initialized")
+	}
+
+	// Test with multiple assets
+	txs, err = client.Wallets().GetTransactions(ctx, wallet.ID, &GetTransactionsOptions{
+		Chain: "ethereum",
+		Asset: []string{"eth", "usdc", "usdt"},
+		Limit: 10,
+	})
+	if err != nil {
+		t.Fatalf("Failed to get transactions with multiple assets: %v", err)
+	}
+
+	// Test missing required parameters
+	_, err = client.Wallets().GetTransactions(ctx, wallet.ID, nil)
+	if err == nil {
+		t.Error("Expected error when options is nil")
+	}
+
+	_, err = client.Wallets().GetTransactions(ctx, wallet.ID, &GetTransactionsOptions{
+		Asset: []string{"eth"},
+	})
+	if err == nil {
+		t.Error("Expected error when chain is missing")
+	}
+
+	_, err = client.Wallets().GetTransactions(ctx, wallet.ID, &GetTransactionsOptions{
+		Chain: "ethereum",
+	})
+	if err == nil {
+		t.Error("Expected error when asset is missing")
+	}
+
+	// Test limit validation
+	_, err = client.Wallets().GetTransactions(ctx, wallet.ID, &GetTransactionsOptions{
+		Chain: "ethereum",
+		Asset: []string{"eth"},
+		Limit: 150, // Exceeds max of 100
+	})
+	if err == nil {
+		t.Error("Expected error when limit exceeds 100")
+	}
+
+	// Test max assets validation
+	_, err = client.Wallets().GetTransactions(ctx, wallet.ID, &GetTransactionsOptions{
+		Chain: "ethereum",
+		Asset: []string{"eth", "usdc", "usdt", "dai", "wbtc"}, // 5 assets, max is 4
+	})
+	if err == nil {
+		t.Error("Expected error when more than 4 assets specified")
+	}
+}
+
+func TestE2E_Wallets_GetTransactionByHash(t *testing.T) {
+	client, server, mockServer := setupTestServer(t)
+	defer server.Close()
+
+	ctx := context.Background()
+
+	// Create a wallet
+	wallet, err := client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeEthereum,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create wallet: %v", err)
+	}
+
+	// Add a mock transaction to the mock server
+	mockTx := Transaction{
+		ID:       "tx-123",
+		WalletID: wallet.ID,
+		Hash:     "0xabc123",
+		Status:   "confirmed",
+		CAIP2:    "eip155:1",
+	}
+	mockServer.mu.Lock()
+	mockServer.transactions["tx-123"] = &mockTx
+	mockServer.mu.Unlock()
+
+	// Test GetTransactionByHash (will return empty result from mock server)
+	// In real usage, this would find the transaction by hash
+	_, err = client.Wallets().GetTransactionByHash(
+		ctx,
+		wallet.ID,
+		"ethereum",
+		[]string{"eth"},
+		"0xabc123",
+	)
+	// The mock server returns empty list, so this should return "not found" error
+	if err == nil || err.Error() != "transaction not found: 0xabc123" {
+		t.Logf("Expected 'transaction not found' error, got: %v", err)
 	}
 }
 

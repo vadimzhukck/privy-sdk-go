@@ -490,6 +490,20 @@ func (m *MockPrivyServer) handleGetWalletTransactions(w http.ResponseWriter, r *
 		return
 	}
 
+	// Validate required query parameters
+	chain := r.URL.Query().Get("chain")
+	assets := r.URL.Query()["asset"]
+
+	if chain == "" {
+		m.writeError(w, http.StatusBadRequest, "chain parameter is required")
+		return
+	}
+
+	if len(assets) == 0 {
+		m.writeError(w, http.StatusBadRequest, "asset parameter is required")
+		return
+	}
+
 	resp := PaginatedResponse[Transaction]{
 		Data: []Transaction{},
 	}

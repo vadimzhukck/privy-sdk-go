@@ -39,20 +39,39 @@ type WebhookEventType string
 
 const (
 	// User events
-	WebhookEventUserCreated        WebhookEventType = "user.created"
-	WebhookEventUserUpdated        WebhookEventType = "user.updated"
-	WebhookEventUserDeleted        WebhookEventType = "user.deleted"
-	WebhookEventUserLinkedAccount  WebhookEventType = "user.linked_account"
-	WebhookEventUserAuthenticated  WebhookEventType = "user.authenticated"
+	WebhookEventUserCreated           WebhookEventType = "user.created"
+	WebhookEventUserUpdated           WebhookEventType = "user.updated"
+	WebhookEventUserDeleted           WebhookEventType = "user.deleted"
+	WebhookEventUserLinkedAccount     WebhookEventType = "user.linked_account"
+	WebhookEventUserUnlinkedAccount   WebhookEventType = "user.unlinked_account"
+	WebhookEventUserUpdatedAccount    WebhookEventType = "user.updated_account"
+	WebhookEventUserTransferredAccount WebhookEventType = "user.transferred_account"
+	WebhookEventUserAuthenticated     WebhookEventType = "user.authenticated"
+	WebhookEventUserWalletCreated     WebhookEventType = "user.wallet_created"
 
 	// Wallet events
-	WebhookEventWalletCreated     WebhookEventType = "wallet.created"
-	WebhookEventWalletTransferred WebhookEventType = "wallet.transferred"
+	WebhookEventWalletCreated        WebhookEventType = "wallet.created"
+	WebhookEventWalletTransferred    WebhookEventType = "wallet.transferred"
+	WebhookEventWalletFundsDeposited WebhookEventType = "wallet.funds_deposited"
+	WebhookEventWalletFundsWithdrawn WebhookEventType = "wallet.funds_withdrawn"
+	WebhookEventWalletPrivateKeyExport WebhookEventType = "wallet.private_key_export"
+	WebhookEventWalletRecoverySetup  WebhookEventType = "wallet.recovery_setup"
+	WebhookEventWalletRecovered      WebhookEventType = "wallet.recovered"
 
 	// Transaction events
-	WebhookEventTransactionCreated   WebhookEventType = "transaction.created"
-	WebhookEventTransactionCompleted WebhookEventType = "transaction.completed"
-	WebhookEventTransactionFailed    WebhookEventType = "transaction.failed"
+	WebhookEventTransactionCreated         WebhookEventType = "transaction.created"
+	WebhookEventTransactionBroadcasted     WebhookEventType = "transaction.broadcasted"
+	WebhookEventTransactionConfirmed       WebhookEventType = "transaction.confirmed"
+	WebhookEventTransactionCompleted       WebhookEventType = "transaction.completed"
+	WebhookEventTransactionExecutionReverted WebhookEventType = "transaction.execution_reverted"
+	WebhookEventTransactionStillPending    WebhookEventType = "transaction.still_pending"
+	WebhookEventTransactionFailed          WebhookEventType = "transaction.failed"
+	WebhookEventTransactionReplaced        WebhookEventType = "transaction.replaced"
+	WebhookEventTransactionProviderError   WebhookEventType = "transaction.provider_error"
+
+	// MFA events
+	WebhookEventMFAEnabled  WebhookEventType = "mfa.enabled"
+	WebhookEventMFADisabled WebhookEventType = "mfa.disabled"
 )
 
 // UserCreatedEvent represents a user.created webhook event.
@@ -101,17 +120,99 @@ type WalletTransferredEvent struct {
 	TransferredAt int64  `json:"transferred_at"`
 }
 
+// UserUnlinkedAccountEvent represents a user.unlinked_account webhook event.
+type UserUnlinkedAccountEvent struct {
+	User    User          `json:"user"`
+	Account LinkedAccount `json:"account"`
+}
+
+// UserUpdatedAccountEvent represents a user.updated_account webhook event.
+type UserUpdatedAccountEvent struct {
+	User    User          `json:"user"`
+	Account LinkedAccount `json:"account"`
+}
+
+// UserTransferredAccountEvent represents a user.transferred_account webhook event.
+type UserTransferredAccountEvent struct {
+	FromUser    UserRef       `json:"fromUser"`
+	ToUser      User          `json:"toUser"`
+	Account     LinkedAccount `json:"account"`
+	DeletedUser bool          `json:"deletedUser"`
+}
+
+// UserRef represents a minimal user reference.
+type UserRef struct {
+	ID string `json:"id"`
+}
+
+// UserWalletCreatedEvent represents a user.wallet_created webhook event.
+type UserWalletCreatedEvent struct {
+	User   User          `json:"user"`
+	Wallet LinkedAccount `json:"wallet"`
+}
+
 // TransactionEvent represents a transaction webhook event.
 type TransactionEvent struct {
 	TransactionID   string    `json:"transaction_id"`
 	WalletID        string    `json:"wallet_id"`
-	ChainType       ChainType `json:"chain_type"`
+	ChainType       ChainType `json:"chain_type,omitempty"`
+	CAIP2           string    `json:"caip2,omitempty"`
 	TransactionHash string    `json:"transaction_hash,omitempty"`
 	Status          string    `json:"status"`
-	CreatedAt       int64     `json:"created_at"`
+	CreatedAt       int64     `json:"created_at,omitempty"`
 	CompletedAt     int64     `json:"completed_at,omitempty"`
 	FailedAt        int64     `json:"failed_at,omitempty"`
 	Error           string    `json:"error,omitempty"`
+	TransactionRequest *TransactionRequest `json:"transaction_request,omitempty"` // For still_pending events
+}
+
+// TransactionRequest represents a transaction request in still_pending events.
+type TransactionRequest struct {
+	From     string `json:"from,omitempty"`
+	To       string `json:"to,omitempty"`
+	Value    string `json:"value,omitempty"`
+	Data     string `json:"data,omitempty"`
+	Gas      string `json:"gas,omitempty"`
+	GasPrice string `json:"gasPrice,omitempty"`
+}
+
+// WalletFundsEvent represents wallet.funds_deposited and wallet.funds_withdrawn events.
+type WalletFundsEvent struct {
+	WalletID        string       `json:"wallet_id"`
+	IdempotencyKey  string       `json:"idempotency_key"`
+	CAIP2           string       `json:"caip2"`
+	Asset           AssetInfo    `json:"asset"`
+	Amount          string       `json:"amount"`
+	TransactionHash string       `json:"transaction_hash"`
+	Sender          string       `json:"sender"`
+	Recipient       string       `json:"recipient"`
+	Block           BlockInfo    `json:"block"`
+}
+
+// AssetInfo represents asset information in fund events.
+type AssetInfo struct {
+	Type    string `json:"type"`              // "native" or "erc20" or "spl"
+	Address string `json:"address,omitempty"` // For ERC20 tokens
+	Mint    string `json:"mint,omitempty"`    // For SPL tokens
+}
+
+// BlockInfo represents block information.
+type BlockInfo struct {
+	Number int64 `json:"number"`
+}
+
+// WalletSecurityEvent represents wallet security events (private_key_export, recovery_setup, recovered).
+type WalletSecurityEvent struct {
+	UserID        string `json:"user_id"`
+	WalletID      string `json:"wallet_id"`
+	WalletAddress string `json:"wallet_address"`
+	Method        string `json:"method,omitempty"` // For recovery_setup events
+}
+
+// MFAEvent represents MFA events (mfa.enabled, mfa.disabled).
+type MFAEvent struct {
+	UserID string `json:"user_id"`
+	Method string `json:"method"` // "sms", "totp", or "passkey"
 }
 
 var (
@@ -241,6 +342,176 @@ func (h *WebhookHandler) OnTransactionCompleted(handler func(*TransactionEvent))
 func (h *WebhookHandler) OnTransactionFailed(handler func(*TransactionEvent)) {
 	h.OnEvent(WebhookEventTransactionFailed, func(e WebhookEvent) {
 		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnUserUnlinkedAccount registers a handler for user.unlinked_account events.
+func (h *WebhookHandler) OnUserUnlinkedAccount(handler func(*UserUnlinkedAccountEvent)) {
+	h.OnEvent(WebhookEventUserUnlinkedAccount, func(e WebhookEvent) {
+		var data UserUnlinkedAccountEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnUserUpdatedAccount registers a handler for user.updated_account events.
+func (h *WebhookHandler) OnUserUpdatedAccount(handler func(*UserUpdatedAccountEvent)) {
+	h.OnEvent(WebhookEventUserUpdatedAccount, func(e WebhookEvent) {
+		var data UserUpdatedAccountEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnUserTransferredAccount registers a handler for user.transferred_account events.
+func (h *WebhookHandler) OnUserTransferredAccount(handler func(*UserTransferredAccountEvent)) {
+	h.OnEvent(WebhookEventUserTransferredAccount, func(e WebhookEvent) {
+		var data UserTransferredAccountEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnUserWalletCreated registers a handler for user.wallet_created events.
+func (h *WebhookHandler) OnUserWalletCreated(handler func(*UserWalletCreatedEvent)) {
+	h.OnEvent(WebhookEventUserWalletCreated, func(e WebhookEvent) {
+		var data UserWalletCreatedEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnTransactionBroadcasted registers a handler for transaction.broadcasted events.
+func (h *WebhookHandler) OnTransactionBroadcasted(handler func(*TransactionEvent)) {
+	h.OnEvent(WebhookEventTransactionBroadcasted, func(e WebhookEvent) {
+		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnTransactionConfirmed registers a handler for transaction.confirmed events.
+func (h *WebhookHandler) OnTransactionConfirmed(handler func(*TransactionEvent)) {
+	h.OnEvent(WebhookEventTransactionConfirmed, func(e WebhookEvent) {
+		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnTransactionExecutionReverted registers a handler for transaction.execution_reverted events.
+func (h *WebhookHandler) OnTransactionExecutionReverted(handler func(*TransactionEvent)) {
+	h.OnEvent(WebhookEventTransactionExecutionReverted, func(e WebhookEvent) {
+		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnTransactionStillPending registers a handler for transaction.still_pending events.
+func (h *WebhookHandler) OnTransactionStillPending(handler func(*TransactionEvent)) {
+	h.OnEvent(WebhookEventTransactionStillPending, func(e WebhookEvent) {
+		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnTransactionReplaced registers a handler for transaction.replaced events.
+func (h *WebhookHandler) OnTransactionReplaced(handler func(*TransactionEvent)) {
+	h.OnEvent(WebhookEventTransactionReplaced, func(e WebhookEvent) {
+		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnTransactionProviderError registers a handler for transaction.provider_error events.
+func (h *WebhookHandler) OnTransactionProviderError(handler func(*TransactionEvent)) {
+	h.OnEvent(WebhookEventTransactionProviderError, func(e WebhookEvent) {
+		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnWalletFundsDeposited registers a handler for wallet.funds_deposited events.
+func (h *WebhookHandler) OnWalletFundsDeposited(handler func(*WalletFundsEvent)) {
+	h.OnEvent(WebhookEventWalletFundsDeposited, func(e WebhookEvent) {
+		var data WalletFundsEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnWalletFundsWithdrawn registers a handler for wallet.funds_withdrawn events.
+func (h *WebhookHandler) OnWalletFundsWithdrawn(handler func(*WalletFundsEvent)) {
+	h.OnEvent(WebhookEventWalletFundsWithdrawn, func(e WebhookEvent) {
+		var data WalletFundsEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnWalletPrivateKeyExport registers a handler for wallet.private_key_export events.
+func (h *WebhookHandler) OnWalletPrivateKeyExport(handler func(*WalletSecurityEvent)) {
+	h.OnEvent(WebhookEventWalletPrivateKeyExport, func(e WebhookEvent) {
+		var data WalletSecurityEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnWalletRecoverySetup registers a handler for wallet.recovery_setup events.
+func (h *WebhookHandler) OnWalletRecoverySetup(handler func(*WalletSecurityEvent)) {
+	h.OnEvent(WebhookEventWalletRecoverySetup, func(e WebhookEvent) {
+		var data WalletSecurityEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnWalletRecovered registers a handler for wallet.recovered events.
+func (h *WebhookHandler) OnWalletRecovered(handler func(*WalletSecurityEvent)) {
+	h.OnEvent(WebhookEventWalletRecovered, func(e WebhookEvent) {
+		var data WalletSecurityEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnMFAEnabled registers a handler for mfa.enabled events.
+func (h *WebhookHandler) OnMFAEnabled(handler func(*MFAEvent)) {
+	h.OnEvent(WebhookEventMFAEnabled, func(e WebhookEvent) {
+		var data MFAEvent
+		if err := json.Unmarshal(e.Data, &data); err == nil {
+			handler(&data)
+		}
+	})
+}
+
+// OnMFADisabled registers a handler for mfa.disabled events.
+func (h *WebhookHandler) OnMFADisabled(handler func(*MFAEvent)) {
+	h.OnEvent(WebhookEventMFADisabled, func(e WebhookEvent) {
+		var data MFAEvent
 		if err := json.Unmarshal(e.Data, &data); err == nil {
 			handler(&data)
 		}
@@ -408,6 +679,30 @@ func (e *WebhookEvent) ParseEvent() (any, error) {
 			return nil, err
 		}
 		return &data, nil
+	case WebhookEventUserUnlinkedAccount:
+		var data UserUnlinkedAccountEvent
+		if err := json.Unmarshal(e.Data, &data); err != nil {
+			return nil, err
+		}
+		return &data, nil
+	case WebhookEventUserUpdatedAccount:
+		var data UserUpdatedAccountEvent
+		if err := json.Unmarshal(e.Data, &data); err != nil {
+			return nil, err
+		}
+		return &data, nil
+	case WebhookEventUserTransferredAccount:
+		var data UserTransferredAccountEvent
+		if err := json.Unmarshal(e.Data, &data); err != nil {
+			return nil, err
+		}
+		return &data, nil
+	case WebhookEventUserWalletCreated:
+		var data UserWalletCreatedEvent
+		if err := json.Unmarshal(e.Data, &data); err != nil {
+			return nil, err
+		}
+		return &data, nil
 	case WebhookEventWalletCreated:
 		var data WalletCreatedEvent
 		if err := json.Unmarshal(e.Data, &data); err != nil {
@@ -420,8 +715,28 @@ func (e *WebhookEvent) ParseEvent() (any, error) {
 			return nil, err
 		}
 		return &data, nil
-	case WebhookEventTransactionCreated, WebhookEventTransactionCompleted, WebhookEventTransactionFailed:
+	case WebhookEventWalletFundsDeposited, WebhookEventWalletFundsWithdrawn:
+		var data WalletFundsEvent
+		if err := json.Unmarshal(e.Data, &data); err != nil {
+			return nil, err
+		}
+		return &data, nil
+	case WebhookEventWalletPrivateKeyExport, WebhookEventWalletRecoverySetup, WebhookEventWalletRecovered:
+		var data WalletSecurityEvent
+		if err := json.Unmarshal(e.Data, &data); err != nil {
+			return nil, err
+		}
+		return &data, nil
+	case WebhookEventTransactionCreated, WebhookEventTransactionBroadcasted, WebhookEventTransactionConfirmed,
+		WebhookEventTransactionCompleted, WebhookEventTransactionExecutionReverted, WebhookEventTransactionStillPending,
+		WebhookEventTransactionFailed, WebhookEventTransactionReplaced, WebhookEventTransactionProviderError:
 		var data TransactionEvent
+		if err := json.Unmarshal(e.Data, &data); err != nil {
+			return nil, err
+		}
+		return &data, nil
+	case WebhookEventMFAEnabled, WebhookEventMFADisabled:
+		var data MFAEvent
 		if err := json.Unmarshal(e.Data, &data); err != nil {
 			return nil, err
 		}

@@ -154,13 +154,33 @@ type WalletOwner struct {
 
 // Transaction represents a blockchain transaction.
 type Transaction struct {
-	ID        string    `json:"id"`
-	WalletID  string    `json:"wallet_id"`
-	ChainType ChainType `json:"chain_type"`
-	CAIP2     string    `json:"caip2"`
-	Hash      string    `json:"hash,omitempty"`
-	Status    string    `json:"status"`
-	CreatedAt int64     `json:"created_at"`
+	ID        string              `json:"privy_transaction_id"`
+	WalletID  string              `json:"wallet_id"`
+	ChainType ChainType           `json:"chain_type,omitempty"` // Deprecated, use CAIP2
+	CAIP2     string              `json:"caip2"`
+	Hash      string              `json:"transaction_hash,omitempty"`
+	Status    string              `json:"status"`
+	CreatedAt int64               `json:"created_at"`
+	Sponsored bool                `json:"sponsored,omitempty"`
+	Details   *TransactionDetails `json:"details,omitempty"`
+}
+
+// TransactionDetails contains transfer metadata for a transaction.
+type TransactionDetails struct {
+	Type         string              `json:"type"`                    // Transfer type
+	Sender       string              `json:"sender,omitempty"`        // Sender address
+	Recipient    string              `json:"recipient,omitempty"`     // Recipient address
+	Chain        string              `json:"chain,omitempty"`         // Chain identifier
+	Asset        string              `json:"asset,omitempty"`         // Asset identifier
+	RawValue     string              `json:"raw_value,omitempty"`     // Raw value as string
+	DisplayValues *TransactionDisplay `json:"display_values,omitempty"` // Human-readable values
+}
+
+// TransactionDisplay contains human-readable transaction values.
+type TransactionDisplay struct {
+	Amount   string `json:"amount,omitempty"`   // Formatted amount
+	Currency string `json:"currency,omitempty"` // Currency/token symbol
+	USDValue string `json:"usd_value,omitempty"` // USD equivalent
 }
 
 // EthereumTransaction represents an Ethereum transaction request.
