@@ -12,6 +12,9 @@ type SparkWalletsService struct {
 
 // Transfer sends satoshis to a Spark address.
 func (s *SparkWalletsService) Transfer(ctx context.Context, walletID string, receiverAddress string, amountSats int64, network SparkNetwork, signature string) (*SparkTransferResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -37,6 +40,9 @@ func (s *SparkWalletsService) Transfer(ctx context.Context, walletID string, rec
 
 // GetBalance retrieves the balance of a Spark wallet.
 func (s *SparkWalletsService) GetBalance(ctx context.Context, walletID string, network SparkNetwork, signature string) (*SparkBalanceResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -58,6 +64,9 @@ func (s *SparkWalletsService) GetBalance(ctx context.Context, walletID string, n
 
 // TransferTokens transfers Spark tokens to a Spark address.
 func (s *SparkWalletsService) TransferTokens(ctx context.Context, walletID string, tokenIdentifier string, tokenAmount int64, receiverAddress string, network SparkNetwork, signature string) (*SparkResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -84,6 +93,9 @@ func (s *SparkWalletsService) TransferTokens(ctx context.Context, walletID strin
 
 // GetStaticDepositAddress retrieves a static Bitcoin deposit address for the Spark wallet.
 func (s *SparkWalletsService) GetStaticDepositAddress(ctx context.Context, walletID string, network SparkNetwork, signature string) (*SparkDepositAddressResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -105,6 +117,9 @@ func (s *SparkWalletsService) GetStaticDepositAddress(ctx context.Context, walle
 
 // GetClaimStaticDepositQuote retrieves a quote for claiming a static deposit.
 func (s *SparkWalletsService) GetClaimStaticDepositQuote(ctx context.Context, walletID string, network SparkNetwork, signature string) (*SparkResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -127,6 +142,9 @@ func (s *SparkWalletsService) GetClaimStaticDepositQuote(ctx context.Context, wa
 // ClaimStaticDeposit claims a static deposit after it has been confirmed on Bitcoin.
 // Requires 3+ confirmations on the Bitcoin transaction.
 func (s *SparkWalletsService) ClaimStaticDeposit(ctx context.Context, walletID string, txID string, creditAmountSats int64, sspSignature string, network SparkNetwork, signature string) (*SparkResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -153,6 +171,9 @@ func (s *SparkWalletsService) ClaimStaticDeposit(ctx context.Context, walletID s
 
 // CreateLightningInvoice creates a Lightning Network invoice.
 func (s *SparkWalletsService) CreateLightningInvoice(ctx context.Context, walletID string, amountSats int64, network SparkNetwork, signature string) (*SparkLightningInvoiceResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -177,6 +198,9 @@ func (s *SparkWalletsService) CreateLightningInvoice(ctx context.Context, wallet
 
 // PayLightningInvoice pays a Lightning Network invoice.
 func (s *SparkWalletsService) PayLightningInvoice(ctx context.Context, walletID string, invoice string, maxFeeSats int64, network SparkNetwork, signature string) (*SparkResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {
@@ -202,6 +226,9 @@ func (s *SparkWalletsService) PayLightningInvoice(ctx context.Context, walletID 
 
 // SignMessage signs a message using the Spark wallet's identity key.
 func (s *SparkWalletsService) SignMessage(ctx context.Context, walletID string, message string, compact bool, network SparkNetwork, signature string) (*SparkSignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if network == "" {

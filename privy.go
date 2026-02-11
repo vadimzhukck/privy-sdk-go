@@ -8,11 +8,15 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 )
+
+// ErrNilClient is returned when a service method is called on a nil or uninitialized client.
+var ErrNilClient = errors.New("privy: client is not initialized")
 
 const (
 	// DefaultBaseURL is the default Privy API base URL.
@@ -184,6 +188,9 @@ func (c *Client) Auth() *AuthService {
 // RawSign signs a pre-computed hash using the wallet's key.
 // Uses POST /wallets/{walletID}/raw_sign endpoint.
 func (c *Client) RawSign(ctx context.Context, walletID string, hash string) (*RawSignResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/raw_sign", c.baseURL, walletID)
 	req := &RawSignHashRequest{Params: RawSignHashParams{Hash: hash}}
 	var resp RawSignResponse
@@ -196,6 +203,9 @@ func (c *Client) RawSign(ctx context.Context, walletID string, hash string) (*Ra
 // RawSignBytes signs bytes using a specified hash function.
 // Uses POST /wallets/{walletID}/raw_sign endpoint.
 func (c *Client) RawSignBytes(ctx context.Context, walletID string, data string, encoding string, hashFunction string) (*RawSignResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/raw_sign", c.baseURL, walletID)
 	req := &RawSignBytesRequest{Params: RawSignBytesParams{
 		Bytes: data, Encoding: encoding, HashFunction: hashFunction,

@@ -29,6 +29,9 @@ type SolanaSignMessageRequest struct {
 
 // SignAndSendTransaction signs and sends a Solana transaction.
 func (s *SolanaWalletsService) SignAndSendTransaction(ctx context.Context, walletID string, transaction string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -49,6 +52,9 @@ func (s *SolanaWalletsService) SignAndSendTransaction(ctx context.Context, walle
 
 // SignAndSendTransactionOnDevnet signs and sends a Solana transaction on devnet.
 func (s *SolanaWalletsService) SignAndSendTransactionOnDevnet(ctx context.Context, walletID string, transaction string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -69,6 +75,9 @@ func (s *SolanaWalletsService) SignAndSendTransactionOnDevnet(ctx context.Contex
 
 // SignTransaction signs a Solana transaction without sending.
 func (s *SolanaWalletsService) SignTransaction(ctx context.Context, walletID string, transaction string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -89,6 +98,9 @@ func (s *SolanaWalletsService) SignTransaction(ctx context.Context, walletID str
 // SignMessage signs a message using the Solana wallet.
 // The message will be base64 encoded before sending.
 func (s *SolanaWalletsService) SignMessage(ctx context.Context, walletID string, message string, encoding string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	// Base64 encode the message if it's not already
@@ -115,6 +127,9 @@ func (s *SolanaWalletsService) SignMessage(ctx context.Context, walletID string,
 
 // SignAndSendTransactionWithCAIP2 signs and sends a Solana transaction with a custom CAIP-2 identifier.
 func (s *SolanaWalletsService) SignAndSendTransactionWithCAIP2(ctx context.Context, walletID string, transaction string, caip2 string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{

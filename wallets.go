@@ -114,6 +114,9 @@ func (s *WalletsService) Spark() *SparkWalletsService {
 
 // Create creates a new wallet.
 func (s *WalletsService) Create(ctx context.Context, req *CreateWalletRequest) (*Wallet, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets", s.client.baseURL)
 
 	var wallet Wallet
@@ -126,6 +129,9 @@ func (s *WalletsService) Create(ctx context.Context, req *CreateWalletRequest) (
 
 // Get retrieves a wallet by its ID.
 func (s *WalletsService) Get(ctx context.Context, walletID string) (*Wallet, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s", s.client.baseURL, walletID)
 
 	var wallet Wallet
@@ -146,6 +152,9 @@ type WalletListOptions struct {
 
 // List lists all wallets with pagination and optional filters.
 func (s *WalletsService) List(ctx context.Context, opts *WalletListOptions) (*PaginatedResponse[Wallet], error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets", s.client.baseURL)
 
 	if opts != nil {
@@ -177,6 +186,9 @@ func (s *WalletsService) List(ctx context.Context, opts *WalletListOptions) (*Pa
 
 // Update updates a wallet's policies or additional signers.
 func (s *WalletsService) Update(ctx context.Context, walletID string, req *UpdateWalletRequest) (*Wallet, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s", s.client.baseURL, walletID)
 
 	var wallet Wallet
@@ -189,6 +201,9 @@ func (s *WalletsService) Update(ctx context.Context, walletID string, req *Updat
 
 // Export exports a wallet's private key.
 func (s *WalletsService) Export(ctx context.Context, walletID string, signature string) (*ExportWalletResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/export", s.client.baseURL, walletID)
 
 	var resp ExportWalletResponse
@@ -208,6 +223,9 @@ type GetBalanceOptions struct {
 // GetBalance retrieves the balance of a wallet.
 // Either asset or chain must be provided.
 func (s *WalletsService) GetBalance(ctx context.Context, walletID string, opts *GetBalanceOptions) (*WalletBalance, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/balance", s.client.baseURL, walletID)
 
 	if opts != nil {
@@ -243,6 +261,9 @@ type GetTransactionsOptions struct {
 // GetTransactions retrieves the transaction history for a wallet.
 // Chain and Asset parameters are required by the Privy API.
 func (s *WalletsService) GetTransactions(ctx context.Context, walletID string, opts *GetTransactionsOptions) (*PaginatedResponse[Transaction], error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/transactions", s.client.baseURL, walletID)
 
 	if opts == nil {
@@ -293,6 +314,9 @@ func (s *WalletsService) GetTransactions(ctx context.Context, walletID string, o
 
 // InitializeImport initializes the wallet import process.
 func (s *WalletsService) InitializeImport(ctx context.Context, req *ImportWalletInitRequest) (*ImportWalletInitResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/import/initialize", s.client.baseURL)
 
 	var resp ImportWalletInitResponse
@@ -305,6 +329,9 @@ func (s *WalletsService) InitializeImport(ctx context.Context, req *ImportWallet
 
 // SubmitImport completes the wallet import process.
 func (s *WalletsService) SubmitImport(ctx context.Context, req *ImportWalletSubmitRequest) (*Wallet, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/import/submit", s.client.baseURL)
 
 	var wallet Wallet
@@ -317,6 +344,9 @@ func (s *WalletsService) SubmitImport(ctx context.Context, req *ImportWalletSubm
 
 // GetTransaction retrieves a specific transaction by ID.
 func (s *WalletsService) GetTransaction(ctx context.Context, transactionID string) (*Transaction, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/transactions/%s", s.client.baseURL, transactionID)
 
 	var tx Transaction

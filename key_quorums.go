@@ -22,6 +22,9 @@ type UpdateKeyQuorumRequest struct {
 
 // Create creates a new key quorum.
 func (s *KeyQuorumsService) Create(ctx context.Context, req *CreateKeyQuorumRequest) (*KeyQuorum, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/key-quorums", s.client.baseURL)
 
 	var kq KeyQuorum
@@ -34,6 +37,9 @@ func (s *KeyQuorumsService) Create(ctx context.Context, req *CreateKeyQuorumRequ
 
 // Get retrieves a key quorum by its ID.
 func (s *KeyQuorumsService) Get(ctx context.Context, keyQuorumID string) (*KeyQuorum, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/key-quorums/%s", s.client.baseURL, keyQuorumID)
 
 	var kq KeyQuorum
@@ -46,6 +52,9 @@ func (s *KeyQuorumsService) Get(ctx context.Context, keyQuorumID string) (*KeyQu
 
 // Update updates a key quorum.
 func (s *KeyQuorumsService) Update(ctx context.Context, keyQuorumID string, req *UpdateKeyQuorumRequest) (*KeyQuorum, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/key-quorums/%s", s.client.baseURL, keyQuorumID)
 
 	var kq KeyQuorum
@@ -58,6 +67,9 @@ func (s *KeyQuorumsService) Update(ctx context.Context, keyQuorumID string, req 
 
 // Delete deletes a key quorum.
 func (s *KeyQuorumsService) Delete(ctx context.Context, keyQuorumID string) error {
+	if s == nil || s.client == nil {
+		return ErrNilClient
+	}
 	u := fmt.Sprintf("%s/key-quorums/%s", s.client.baseURL, keyQuorumID)
 	return s.client.doRequest(ctx, "DELETE", u, nil, nil)
 }

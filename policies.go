@@ -38,6 +38,9 @@ type UpdateRuleRequest struct {
 
 // Create creates a new policy.
 func (s *PoliciesService) Create(ctx context.Context, req *CreatePolicyRequest) (*Policy, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies", s.client.baseURL)
 
 	var policy Policy
@@ -50,6 +53,9 @@ func (s *PoliciesService) Create(ctx context.Context, req *CreatePolicyRequest) 
 
 // Get retrieves a policy by its ID.
 func (s *PoliciesService) Get(ctx context.Context, policyID string) (*Policy, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies/%s", s.client.baseURL, policyID)
 
 	var policy Policy
@@ -62,6 +68,9 @@ func (s *PoliciesService) Get(ctx context.Context, policyID string) (*Policy, er
 
 // Update updates a policy.
 func (s *PoliciesService) Update(ctx context.Context, policyID string, req *UpdatePolicyRequest) (*Policy, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies/%s", s.client.baseURL, policyID)
 
 	var policy Policy
@@ -74,12 +83,18 @@ func (s *PoliciesService) Update(ctx context.Context, policyID string, req *Upda
 
 // Delete deletes a policy.
 func (s *PoliciesService) Delete(ctx context.Context, policyID string) error {
+	if s == nil || s.client == nil {
+		return ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies/%s", s.client.baseURL, policyID)
 	return s.client.doRequest(ctx, "DELETE", u, nil, nil)
 }
 
 // AddRule adds a rule to a policy.
 func (s *PoliciesService) AddRule(ctx context.Context, policyID string, req *CreateRuleRequest) (*PolicyRule, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies/%s/rules", s.client.baseURL, policyID)
 
 	var rule PolicyRule
@@ -92,6 +107,9 @@ func (s *PoliciesService) AddRule(ctx context.Context, policyID string, req *Cre
 
 // GetRule retrieves a specific rule from a policy.
 func (s *PoliciesService) GetRule(ctx context.Context, policyID, ruleID string) (*PolicyRule, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies/%s/rules/%s", s.client.baseURL, policyID, ruleID)
 
 	var rule PolicyRule
@@ -104,6 +122,9 @@ func (s *PoliciesService) GetRule(ctx context.Context, policyID, ruleID string) 
 
 // UpdateRule updates a rule in a policy.
 func (s *PoliciesService) UpdateRule(ctx context.Context, policyID, ruleID string, req *UpdateRuleRequest) (*PolicyRule, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies/%s/rules/%s", s.client.baseURL, policyID, ruleID)
 
 	var rule PolicyRule
@@ -116,6 +137,9 @@ func (s *PoliciesService) UpdateRule(ctx context.Context, policyID, ruleID strin
 
 // DeleteRule deletes a rule from a policy.
 func (s *PoliciesService) DeleteRule(ctx context.Context, policyID, ruleID string) error {
+	if s == nil || s.client == nil {
+		return ErrNilClient
+	}
 	u := fmt.Sprintf("%s/policies/%s/rules/%s", s.client.baseURL, policyID, ruleID)
 	return s.client.doRequest(ctx, "DELETE", u, nil, nil)
 }

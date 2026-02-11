@@ -275,6 +275,9 @@ type UpdateUserMetadataRequest struct {
 
 // Create creates a new user with the specified linked accounts.
 func (s *UsersService) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	url := fmt.Sprintf("%s/users", s.client.baseURL)
 
 	var user User
@@ -287,6 +290,9 @@ func (s *UsersService) Create(ctx context.Context, req *CreateUserRequest) (*Use
 
 // Get retrieves a user by their Privy ID.
 func (s *UsersService) Get(ctx context.Context, userID string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	url := fmt.Sprintf("%s/users/%s", s.client.authURL, userID)
 
 	var user User
@@ -299,6 +305,9 @@ func (s *UsersService) Get(ctx context.Context, userID string) (*User, error) {
 
 // GetByIDToken retrieves a user using their identity token.
 func (s *UsersService) GetByIDToken(ctx context.Context, idToken string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	url := fmt.Sprintf("%s/users/me", s.client.authURL)
 
 	var user User
@@ -312,12 +321,18 @@ func (s *UsersService) GetByIDToken(ctx context.Context, idToken string) (*User,
 
 // Delete deletes a user by their Privy ID.
 func (s *UsersService) Delete(ctx context.Context, userID string) error {
+	if s == nil || s.client == nil {
+		return ErrNilClient
+	}
 	url := fmt.Sprintf("%s/users/%s", s.client.authURL, userID)
 	return s.client.doRequest(ctx, "DELETE", url, nil, nil)
 }
 
 // List lists all users with pagination.
 func (s *UsersService) List(ctx context.Context, opts *ListOptions) (*PaginatedResponse[User], error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users", s.client.authURL)
 
 	if opts != nil {
@@ -343,6 +358,9 @@ func (s *UsersService) List(ctx context.Context, opts *ListOptions) (*PaginatedR
 
 // GetByEmail retrieves a user by their email address.
 func (s *UsersService) GetByEmail(ctx context.Context, email string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/email/address", s.client.authURL)
 
 	req := map[string]string{"address": email}
@@ -356,6 +374,9 @@ func (s *UsersService) GetByEmail(ctx context.Context, email string) (*User, err
 
 // GetByPhone retrieves a user by their phone number.
 func (s *UsersService) GetByPhone(ctx context.Context, phone string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/phone/number", s.client.authURL)
 
 	req := map[string]string{"number": phone}
@@ -369,6 +390,9 @@ func (s *UsersService) GetByPhone(ctx context.Context, phone string) (*User, err
 
 // GetByWalletAddress retrieves a user by their wallet address.
 func (s *UsersService) GetByWalletAddress(ctx context.Context, address string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/wallet/address", s.client.authURL)
 
 	req := map[string]string{"address": address}
@@ -382,6 +406,9 @@ func (s *UsersService) GetByWalletAddress(ctx context.Context, address string) (
 
 // GetBySmartWalletAddress retrieves a user by their smart wallet address.
 func (s *UsersService) GetBySmartWalletAddress(ctx context.Context, address string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/smart_wallet/address", s.client.authURL)
 
 	req := map[string]string{"address": address}
@@ -395,6 +422,9 @@ func (s *UsersService) GetBySmartWalletAddress(ctx context.Context, address stri
 
 // GetByCustomAuthID retrieves a user by their custom auth ID.
 func (s *UsersService) GetByCustomAuthID(ctx context.Context, customAuthID string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/custom_auth/id", s.client.authURL)
 
 	req := map[string]string{"id": customAuthID}
@@ -408,6 +438,9 @@ func (s *UsersService) GetByCustomAuthID(ctx context.Context, customAuthID strin
 
 // GetByFarcasterFID retrieves a user by their Farcaster FID.
 func (s *UsersService) GetByFarcasterFID(ctx context.Context, fid int64) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/farcaster/fid", s.client.authURL)
 
 	req := map[string]int64{"fid": fid}
@@ -421,6 +454,9 @@ func (s *UsersService) GetByFarcasterFID(ctx context.Context, fid int64) (*User,
 
 // GetByTwitterSubject retrieves a user by their Twitter subject.
 func (s *UsersService) GetByTwitterSubject(ctx context.Context, subject string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/twitter/subject", s.client.authURL)
 
 	req := map[string]string{"twitter_subject": subject}
@@ -434,6 +470,9 @@ func (s *UsersService) GetByTwitterSubject(ctx context.Context, subject string) 
 
 // GetByTwitterUsername retrieves a user by their Twitter username.
 func (s *UsersService) GetByTwitterUsername(ctx context.Context, username string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/twitter/username", s.client.authURL)
 
 	req := map[string]string{"twitter_username": username}
@@ -447,6 +486,9 @@ func (s *UsersService) GetByTwitterUsername(ctx context.Context, username string
 
 // GetByDiscordUsername retrieves a user by their Discord username.
 func (s *UsersService) GetByDiscordUsername(ctx context.Context, username string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/discord/username", s.client.authURL)
 
 	req := map[string]string{"discord_username": username}
@@ -460,6 +502,9 @@ func (s *UsersService) GetByDiscordUsername(ctx context.Context, username string
 
 // GetByTelegramUserID retrieves a user by their Telegram user ID.
 func (s *UsersService) GetByTelegramUserID(ctx context.Context, telegramUserID string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/telegram/telegram_user_id", s.client.authURL)
 
 	req := map[string]string{"telegram_user_id": telegramUserID}
@@ -473,6 +518,9 @@ func (s *UsersService) GetByTelegramUserID(ctx context.Context, telegramUserID s
 
 // GetByTelegramUsername retrieves a user by their Telegram username.
 func (s *UsersService) GetByTelegramUsername(ctx context.Context, username string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/telegram/username", s.client.authURL)
 
 	req := map[string]string{"telegram_username": username}
@@ -486,6 +534,9 @@ func (s *UsersService) GetByTelegramUsername(ctx context.Context, username strin
 
 // GetByGithubUsername retrieves a user by their GitHub username.
 func (s *UsersService) GetByGithubUsername(ctx context.Context, username string) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/github/username", s.client.authURL)
 
 	req := map[string]string{"github_username": username}
@@ -499,6 +550,9 @@ func (s *UsersService) GetByGithubUsername(ctx context.Context, username string)
 
 // UpdateMetadata updates the custom metadata for a user.
 func (s *UsersService) UpdateMetadata(ctx context.Context, userID string, metadata map[string]any) (*User, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/users/%s/custom_metadata", s.client.authURL, userID)
 
 	req := &UpdateUserMetadataRequest{CustomMetadata: metadata}

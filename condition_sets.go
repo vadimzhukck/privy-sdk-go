@@ -41,6 +41,9 @@ type ReplaceConditionSetItemsRequest struct {
 
 // Create creates a new condition set.
 func (s *ConditionSetsService) Create(ctx context.Context, req *CreateConditionSetRequest) (*ConditionSet, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets", s.client.baseURL)
 
 	var cs ConditionSet
@@ -53,6 +56,9 @@ func (s *ConditionSetsService) Create(ctx context.Context, req *CreateConditionS
 
 // Get retrieves a condition set by its ID.
 func (s *ConditionSetsService) Get(ctx context.Context, conditionSetID string) (*ConditionSet, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s", s.client.baseURL, conditionSetID)
 
 	var cs ConditionSet
@@ -65,6 +71,9 @@ func (s *ConditionSetsService) Get(ctx context.Context, conditionSetID string) (
 
 // Update updates a condition set.
 func (s *ConditionSetsService) Update(ctx context.Context, conditionSetID string, req *UpdateConditionSetRequest) (*ConditionSet, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s", s.client.baseURL, conditionSetID)
 
 	var cs ConditionSet
@@ -77,12 +86,18 @@ func (s *ConditionSetsService) Update(ctx context.Context, conditionSetID string
 
 // Delete deletes a condition set.
 func (s *ConditionSetsService) Delete(ctx context.Context, conditionSetID string) error {
+	if s == nil || s.client == nil {
+		return ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s", s.client.baseURL, conditionSetID)
 	return s.client.doRequest(ctx, "DELETE", u, nil, nil)
 }
 
 // AddItems adds items to a condition set (up to 100 items).
 func (s *ConditionSetsService) AddItems(ctx context.Context, conditionSetID string, items []ConditionSetItemInput) ([]ConditionSetItem, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s/items", s.client.baseURL, conditionSetID)
 
 	req := &AddConditionSetItemsRequest{Items: items}
@@ -96,6 +111,9 @@ func (s *ConditionSetsService) AddItems(ctx context.Context, conditionSetID stri
 
 // ListItems lists items in a condition set with pagination.
 func (s *ConditionSetsService) ListItems(ctx context.Context, conditionSetID string, opts *ListOptions) (*PaginatedResponse[ConditionSetItem], error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s/items", s.client.baseURL, conditionSetID)
 
 	if opts != nil {
@@ -121,6 +139,9 @@ func (s *ConditionSetsService) ListItems(ctx context.Context, conditionSetID str
 
 // GetItem retrieves a specific item from a condition set.
 func (s *ConditionSetsService) GetItem(ctx context.Context, conditionSetID, itemID string) (*ConditionSetItem, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s/items/%s", s.client.baseURL, conditionSetID, itemID)
 
 	var item ConditionSetItem
@@ -133,6 +154,9 @@ func (s *ConditionSetsService) GetItem(ctx context.Context, conditionSetID, item
 
 // ReplaceItems replaces all items in a condition set (up to 100 items).
 func (s *ConditionSetsService) ReplaceItems(ctx context.Context, conditionSetID string, items []ConditionSetItemInput) ([]ConditionSetItem, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s/items", s.client.baseURL, conditionSetID)
 
 	req := &ReplaceConditionSetItemsRequest{Items: items}
@@ -146,6 +170,9 @@ func (s *ConditionSetsService) ReplaceItems(ctx context.Context, conditionSetID 
 
 // DeleteItem deletes an item from a condition set.
 func (s *ConditionSetsService) DeleteItem(ctx context.Context, conditionSetID, itemID string) error {
+	if s == nil || s.client == nil {
+		return ErrNilClient
+	}
 	u := fmt.Sprintf("%s/condition-sets/%s/items/%s", s.client.baseURL, conditionSetID, itemID)
 	return s.client.doRequest(ctx, "DELETE", u, nil, nil)
 }

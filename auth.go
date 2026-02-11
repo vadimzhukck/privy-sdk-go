@@ -106,6 +106,9 @@ func (s *AuthService) VerifyToken(ctx context.Context, token string) (*TokenClai
 
 // VerifyTokenWithOptions verifies a Privy access token with custom options.
 func (s *AuthService) VerifyTokenWithOptions(ctx context.Context, token string, opts *VerifyTokenOptions) (*TokenClaims, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	if opts == nil {
 		opts = &VerifyTokenOptions{}
 	}
@@ -196,6 +199,9 @@ func (s *AuthService) VerifyTokenWithOptions(ctx context.Context, token string, 
 
 // GetJWKS fetches the JWKS from Privy's endpoint.
 func (s *AuthService) GetJWKS(ctx context.Context) (*JWKS, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	req, err := http.NewRequestWithContext(ctx, "GET", jwksEndpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("privy: failed to create JWKS request: %w", err)
@@ -221,6 +227,9 @@ func (s *AuthService) GetJWKS(ctx context.Context) (*JWKS, error) {
 
 // RefreshJWKS forces a refresh of the cached JWKS keys.
 func (s *AuthService) RefreshJWKS(ctx context.Context) error {
+	if s == nil || s.client == nil {
+		return ErrNilClient
+	}
 	jwks, err := s.GetJWKS(ctx)
 	if err != nil {
 		return err

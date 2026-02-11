@@ -62,6 +62,9 @@ type Sign7702AuthorizationRequest struct {
 
 // SendTransaction sends an Ethereum transaction.
 func (s *EthereumWalletsService) SendTransaction(ctx context.Context, walletID string, tx *EthereumTransaction, chainID int64, sponsor bool, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	caip2 := fmt.Sprintf("eip155:%d", chainID)
@@ -83,6 +86,9 @@ func (s *EthereumWalletsService) SendTransaction(ctx context.Context, walletID s
 
 // SignTransaction signs an Ethereum transaction without broadcasting.
 func (s *EthereumWalletsService) SignTransaction(ctx context.Context, walletID string, tx *EthereumTransaction, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -101,6 +107,9 @@ func (s *EthereumWalletsService) SignTransaction(ctx context.Context, walletID s
 
 // SignMessage signs a message using personal_sign.
 func (s *EthereumWalletsService) SignMessage(ctx context.Context, walletID string, message string, encoding string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	if encoding == "" {
@@ -126,6 +135,9 @@ func (s *EthereumWalletsService) SignMessage(ctx context.Context, walletID strin
 
 // SignTypedData signs typed data using EIP-712.
 func (s *EthereumWalletsService) SignTypedData(ctx context.Context, walletID string, typedData *TypedData, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -144,6 +156,9 @@ func (s *EthereumWalletsService) SignTypedData(ctx context.Context, walletID str
 
 // SignHash signs a raw hash using secp256k1.
 func (s *EthereumWalletsService) SignHash(ctx context.Context, walletID string, hash string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -165,6 +180,9 @@ func (s *EthereumWalletsService) SignHash(ctx context.Context, walletID string, 
 
 // SignUserOperation signs an ERC-4337 user operation.
 func (s *EthereumWalletsService) SignUserOperation(ctx context.Context, walletID string, userOp map[string]any, entryPoint string, chainID int64, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -187,6 +205,9 @@ func (s *EthereumWalletsService) SignUserOperation(ctx context.Context, walletID
 
 // Sign7702Authorization signs an EIP-7702 authorization.
 func (s *EthereumWalletsService) Sign7702Authorization(ctx context.Context, walletID string, chainID int64, contractAddress string, nonce int64, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
@@ -209,6 +230,9 @@ func (s *EthereumWalletsService) Sign7702Authorization(ctx context.Context, wall
 
 // RawSign signs raw data using the wallet's key.
 func (s *EthereumWalletsService) RawSign(ctx context.Context, walletID string, hash string, signature string) (*SignatureResponse, error) {
+	if s == nil || s.client == nil {
+		return nil, ErrNilClient
+	}
 	u := fmt.Sprintf("%s/wallets/%s/rpc", s.client.baseURL, walletID)
 
 	req := &RPCRequest{
