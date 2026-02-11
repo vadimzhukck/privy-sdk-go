@@ -17,7 +17,128 @@ const (
 	ChainTypeTon           ChainType = "ton"
 	ChainTypeStarknet      ChainType = "starknet"
 	ChainTypeAptos         ChainType = "aptos"
+	ChainTypeSpark         ChainType = "spark"
+	ChainTypeMovement      ChainType = "movement"
 )
+
+// SparkNetwork represents a Spark network identifier.
+type SparkNetwork string
+
+const (
+	SparkNetworkMainnet SparkNetwork = "MAINNET"
+	SparkNetworkRegtest SparkNetwork = "REGTEST"
+)
+
+// SparkRPCRequest represents an RPC request for Spark wallets.
+type SparkRPCRequest struct {
+	Method  string `json:"method"`
+	Network string `json:"network,omitempty"`
+	Params  any    `json:"params,omitempty"`
+}
+
+// SparkTransferRequest represents the params for a Spark transfer.
+type SparkTransferRequest struct {
+	ReceiverSparkAddress string `json:"receiver_spark_address"`
+	AmountSats           int64  `json:"amount_sats"`
+}
+
+// SparkTransferTokensRequest represents the params for a Spark token transfer.
+type SparkTransferTokensRequest struct {
+	TokenIdentifier      string `json:"token_identifier"`
+	TokenAmount          int64  `json:"token_amount"`
+	ReceiverSparkAddress string `json:"receiver_spark_address"`
+}
+
+// SparkClaimStaticDepositRequest represents the params for claiming a static deposit.
+type SparkClaimStaticDepositRequest struct {
+	TxID             string `json:"txId"`
+	CreditAmountSats int64  `json:"creditAmountSats"`
+	SspSignature     string `json:"sspSignature"`
+}
+
+// SparkCreateLightningInvoiceRequest represents the params for creating a Lightning invoice.
+type SparkCreateLightningInvoiceRequest struct {
+	AmountSats int64 `json:"amount_sats"`
+}
+
+// SparkPayLightningInvoiceRequest represents the params for paying a Lightning invoice.
+type SparkPayLightningInvoiceRequest struct {
+	Invoice          string `json:"invoice"`
+	MaxFeeSats       int64  `json:"max_fee_sats"`
+	PreferSpark      bool   `json:"preferSpark,omitempty"`
+	AmountSatsToSend int64  `json:"amountSatsToSend,omitempty"`
+}
+
+// SparkSignMessageRequest represents the params for signing a message with identity key.
+type SparkSignMessageRequest struct {
+	Message string `json:"message"`
+	Compact bool   `json:"compact,omitempty"`
+}
+
+// SparkResponse represents a generic Spark RPC response.
+type SparkResponse struct {
+	Method string         `json:"method"`
+	Data   map[string]any `json:"data"`
+}
+
+// SparkBalanceResponse represents the response from getBalance.
+type SparkBalanceResponse struct {
+	Method string `json:"method"`
+	Data   struct {
+		Balance       string         `json:"balance"`
+		TokenBalances map[string]any `json:"token_balances,omitempty"`
+		Encoding      string         `json:"encoding,omitempty"`
+	} `json:"data"`
+}
+
+// SparkTransferResponse represents the response from transfer.
+type SparkTransferResponse struct {
+	Method string `json:"method"`
+	Data   struct {
+		ID                       string `json:"id,omitempty"`
+		Status                   string `json:"status,omitempty"`
+		TotalValue               int64  `json:"total_value,omitempty"`
+		TransferDirection        string `json:"transfer_direction,omitempty"`
+		Encoding                 string `json:"encoding,omitempty"`
+		SenderIdentityPublicKey  string `json:"sender_identity_public_key,omitempty"`
+	} `json:"data"`
+}
+
+// SparkDepositAddressResponse represents the response from getStaticDepositAddress.
+type SparkDepositAddressResponse struct {
+	Method string `json:"method"`
+	Data   struct {
+		Address string `json:"address"`
+	} `json:"data"`
+}
+
+// SparkLightningInvoiceResponse represents the response from createLightningInvoice.
+type SparkLightningInvoiceResponse struct {
+	Method string `json:"method"`
+	Data   struct {
+		ID      string `json:"id,omitempty"`
+		Invoice struct {
+			EncodedInvoice string `json:"encodedInvoice,omitempty"`
+			PaymentHash    string `json:"paymentHash,omitempty"`
+			Amount         struct {
+				Sats int64 `json:"sats,omitempty"`
+			} `json:"amount,omitempty"`
+			ExpiresAt string `json:"expiresAt,omitempty"`
+		} `json:"invoice,omitempty"`
+		Status          string `json:"status,omitempty"`
+		Network         string `json:"network,omitempty"`
+		Encoding        string `json:"encoding,omitempty"`
+		PaymentPreimage string `json:"payment_preimage,omitempty"`
+	} `json:"data"`
+}
+
+// SparkSignatureResponse represents the response from signMessageWithIdentityKey.
+type SparkSignatureResponse struct {
+	Method string `json:"method"`
+	Data   struct {
+		Signature string `json:"signature"`
+	} `json:"data"`
+}
 
 // LinkedAccountType represents the type of linked account.
 type LinkedAccountType string
@@ -40,6 +161,21 @@ const (
 	LinkedAccountTypeFarcaster  LinkedAccountType = "farcaster"
 	LinkedAccountTypeTelegram   LinkedAccountType = "telegram"
 	LinkedAccountTypeCustomAuth LinkedAccountType = "custom_auth"
+)
+
+// TransactionDetailsType represents the type of transaction transfer.
+// Note: These values are based on common blockchain transaction types.
+// Verify against actual Privy API responses for your use case.
+type TransactionDetailsType string
+
+const (
+	TransactionDetailsTypeSend     TransactionDetailsType = "send"     // Outgoing transfer
+	TransactionDetailsTypeReceive  TransactionDetailsType = "receive"  // Incoming transfer
+	TransactionDetailsTypeTransfer TransactionDetailsType = "transfer" // Generic transfer
+	TransactionDetailsTypeSwap     TransactionDetailsType = "swap"     // Token swap
+	TransactionDetailsTypeApprove  TransactionDetailsType = "approve"  // Token approval
+	TransactionDetailsTypeMint     TransactionDetailsType = "mint"     // Token minting
+	TransactionDetailsTypeBurn     TransactionDetailsType = "burn"     // Token burning
 )
 
 // User represents a Privy user.
@@ -129,6 +265,7 @@ type MFAMethod struct {
 type Wallet struct {
 	ID                string            `json:"id"`
 	Address           string            `json:"address"`
+	PublicKey         string            `json:"public_key,omitempty"`
 	ChainType         ChainType         `json:"chain_type"`
 	PolicyIDs         []string          `json:"policy_ids,omitempty"`
 	OwnerID           string            `json:"owner_id,omitempty"`
@@ -167,13 +304,13 @@ type Transaction struct {
 
 // TransactionDetails contains transfer metadata for a transaction.
 type TransactionDetails struct {
-	Type         string              `json:"type"`                    // Transfer type
-	Sender       string              `json:"sender,omitempty"`        // Sender address
-	Recipient    string              `json:"recipient,omitempty"`     // Recipient address
-	Chain        string              `json:"chain,omitempty"`         // Chain identifier
-	Asset        string              `json:"asset,omitempty"`         // Asset identifier
-	RawValue     string              `json:"raw_value,omitempty"`     // Raw value as string
-	DisplayValues *TransactionDisplay `json:"display_values,omitempty"` // Human-readable values
+	Type         TransactionDetailsType `json:"type"`                    // Transfer type
+	Sender       string                 `json:"sender,omitempty"`        // Sender address
+	Recipient    string                 `json:"recipient,omitempty"`     // Recipient address
+	Chain        string                 `json:"chain,omitempty"`         // Chain identifier
+	Asset        string                 `json:"asset,omitempty"`         // Asset identifier
+	RawValue     string                 `json:"raw_value,omitempty"`     // Raw value as string
+	DisplayValues *TransactionDisplay   `json:"display_values,omitempty"` // Human-readable values
 }
 
 // TransactionDisplay contains human-readable transaction values.
@@ -294,6 +431,37 @@ type SignatureResponse struct {
 		Hash              string `json:"hash,omitempty"`
 		Encoding          string `json:"encoding,omitempty"`
 		CAIP2             string `json:"caip2,omitempty"`
+	} `json:"data"`
+}
+
+// RawSignHashRequest for POST /wallets/{id}/raw_sign with pre-computed hash.
+type RawSignHashRequest struct {
+	Params RawSignHashParams `json:"params"`
+}
+
+// RawSignHashParams contains the hash to sign.
+type RawSignHashParams struct {
+	Hash string `json:"hash"` // hex-encoded, 0x-prefixed
+}
+
+// RawSignBytesRequest for POST /wallets/{id}/raw_sign with bytes + hash function.
+type RawSignBytesRequest struct {
+	Params RawSignBytesParams `json:"params"`
+}
+
+// RawSignBytesParams contains the bytes and hash function to use.
+type RawSignBytesParams struct {
+	Bytes        string `json:"bytes"`
+	Encoding     string `json:"encoding"`      // "hex" or "utf-8"
+	HashFunction string `json:"hash_function"` // "keccak256" or "sha256"
+}
+
+// RawSignResponse from the /raw_sign endpoint.
+type RawSignResponse struct {
+	Method string `json:"method"`
+	Data   struct {
+		Signature string `json:"signature"`
+		Encoding  string `json:"encoding"`
 	} `json:"data"`
 }
 

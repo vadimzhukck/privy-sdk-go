@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  # Run all tests
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v ./...
+    environment:
+      - CGO_ENABLED=0
+      - GOPROXY=https://proxy.golang.org,direct
+
+  # Run tests with coverage
+  test-coverage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -cover -coverprofile=/app/coverage.out ./...
+    volumes:
+      - ./coverage:/app/coverage
+    environment:
+      - CGO_ENABLED=0
+
+  # Run tests with race detection
+  test-race:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -race ./...
+    environment:
+      - CGO_ENABLED=1
+
+  # Run only unit tests (exclude e2e)
+  test-unit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -run "^Test[^E]" ./...
+    environment:
+      - CGO_ENABLED=0
+
+  # Run only e2e tests (mock server)
+  test-e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -run "^TestE2E" ./...
+    environment:
+      - CGO_ENABLED=0
+
+  # Run integration tests against REAL Privy API
+  # Requires: PRIVY_APP_ID and PRIVY_APP_SECRET environment variables
+  test-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -run "^TestIntegration" ./...
+    environment:
+      - CGO_ENABLED=0
+      - PRIVY_APP_ID=${PRIVY_APP_ID}
+      - PRIVY_APP_SECRET=${PRIVY_APP_SECRET}
+
+  # Run specific integration test
+  test-integration-users:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -run "^TestIntegration_Users" ./...
+    environment:
+      - CGO_ENABLED=0
+      - PRIVY_APP_ID=${PRIVY_APP_ID}
+      - PRIVY_APP_SECRET=${PRIVY_APP_SECRET}
+
+  # Run wallet integration tests
+  test-integration-wallets:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -run "^TestIntegration_Wallets" ./...
+    environment:
+      - CGO_ENABLED=0
+      - PRIVY_APP_ID=${PRIVY_APP_ID}
+      - PRIVY_APP_SECRET=${PRIVY_APP_SECRET}
+
+  # Run signing integration tests
+  test-integration-signing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -run "^TestIntegration_(Ethereum|Solana)" ./...
+    environment:
+      - CGO_ENABLED=0
+      - PRIVY_APP_ID=${PRIVY_APP_ID}
+      - PRIVY_APP_SECRET=${PRIVY_APP_SECRET}
+
+  # Run full workflow integration test
+  test-integration-workflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go test -v -run "^TestIntegration_FullWorkflow" ./...
+    environment:
+      - CGO_ENABLED=0
+      - PRIVY_APP_ID=${PRIVY_APP_ID}
+      - PRIVY_APP_SECRET=${PRIVY_APP_SECRET}
+
+  # Run basic example (requires credentials)
+  example-basic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    command: go run ./examples/basic/main.go
+    environment:
+      - PRIVY_APP_ID=${PRIVY_APP_ID:-your-app-id}
+      - PRIVY_APP_SECRET=${PRIVY_APP_SECRET:-your-app-secret}
+
+  # Run transactions example (requires credentials and wallet)
+  example-transactions:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    command: go run ./examples/transactions/main.go
+    environment:
+      - PRIVY_APP_ID=${PRIVY_APP_ID:-your-app-id}
+      - PRIVY_APP_SECRET=${PRIVY_APP_SECRET:-your-app-secret}
+      - PRIVY_WALLET_ID=${PRIVY_WALLET_ID:-your-wallet-id}
+
+  # Lint and vet
+  lint:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: sh -c "go vet ./... && go fmt ./..."
+    environment:
+      - CGO_ENABLED=0
+
+  # Build verification
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tester
+    command: go build -v ./...
+    environment:
+      - CGO_ENABLED=0

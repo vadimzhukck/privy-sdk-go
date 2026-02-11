@@ -82,6 +82,8 @@ func (m *MockPrivyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		m.handleCreateWallet(w, r)
 	case path == "/v1/wallets" && method == "GET":
 		m.handleListWallets(w, r)
+	case strings.HasPrefix(path, "/v1/wallets/") && strings.HasSuffix(path, "/raw_sign") && method == "POST":
+		m.handleWalletRawSign(w, r)
 	case strings.HasPrefix(path, "/v1/wallets/") && strings.HasSuffix(path, "/rpc") && method == "POST":
 		m.handleWalletRPC(w, r)
 	case strings.HasPrefix(path, "/v1/wallets/") && strings.HasSuffix(path, "/balance") && method == "GET":
@@ -619,10 +621,83 @@ func (m *MockPrivyServer) handleWalletRPC(w http.ResponseWriter, r *http.Request
 	case "eth_sign7702Authorization":
 		resp.Data.Signature = "0x7702sig1234567890"
 		resp.Data.Encoding = "hex"
+	case "transfer":
+		sparkResp := SparkTransferResponse{Method: req.Method}
+		sparkResp.Data.ID = "spark-tx-001"
+		sparkResp.Data.Status = "TRANSFER_STATUS_SENDER_KEY_TWEAKED"
+		sparkResp.Data.TotalValue = 100
+		sparkResp.Data.TransferDirection = "OUTGOING"
+		sparkResp.Data.Encoding = "hex"
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "getBalance":
+		sparkResp := SparkBalanceResponse{Method: req.Method}
+		sparkResp.Data.Balance = "1000000"
+		sparkResp.Data.Encoding = "hex"
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "transferTokens":
+		sparkResp := SparkResponse{Method: req.Method, Data: map[string]any{"id": "token-tx-001"}}
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "getStaticDepositAddress":
+		sparkResp := SparkDepositAddressResponse{Method: req.Method}
+		sparkResp.Data.Address = "bc1pmockaddress1234567890"
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "getClaimStaticDepositQuote":
+		sparkResp := SparkResponse{Method: req.Method, Data: map[string]any{"txId": "btc-tx-001", "creditAmountSats": 5000, "sspSignature": "mock-sig"}}
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "claimStaticDeposit":
+		sparkResp := SparkResponse{Method: req.Method, Data: map[string]any{"status": "claimed"}}
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "createLightningInvoice":
+		sparkResp := SparkLightningInvoiceResponse{Method: req.Method}
+		sparkResp.Data.ID = "invoice-001"
+		sparkResp.Data.Status = "INVOICE_CREATED"
+		sparkResp.Data.Invoice.EncodedInvoice = "lnbc100u1pmockinvoice"
+		sparkResp.Data.Invoice.PaymentHash = "mockhash123"
+		sparkResp.Data.Invoice.Amount.Sats = 10000
+		sparkResp.Data.Encoding = "hex"
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "payLightningInvoice":
+		sparkResp := SparkResponse{Method: req.Method, Data: map[string]any{"status": "paid"}}
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
+	case "signMessageWithIdentityKey":
+		sparkResp := SparkSignatureResponse{Method: req.Method}
+		sparkResp.Data.Signature = "0xsparksig1234567890"
+		m.writeJSON(w, http.StatusOK, sparkResp)
+		return
 	default:
 		m.writeError(w, http.StatusBadRequest, fmt.Sprintf("Unknown RPC method: %s", req.Method))
 		return
 	}
+
+	m.writeJSON(w, http.StatusOK, resp)
+}
+
+func (m *MockPrivyServer) handleWalletRawSign(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	walletID := parts[len(parts)-2]
+
+	m.mu.RLock()
+	_, exists := m.wallets[walletID]
+	m.mu.RUnlock()
+
+	if !exists {
+		m.writeError(w, http.StatusNotFound, "Wallet not found")
+		return
+	}
+
+	resp := RawSignResponse{
+		Method: "raw_sign",
+	}
+	resp.Data.Signature = "0xrawsig1234567890"
+	resp.Data.Encoding = "hex"
 
 	m.writeJSON(w, http.StatusOK, resp)
 }

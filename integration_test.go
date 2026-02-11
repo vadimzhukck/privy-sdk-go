@@ -594,3 +594,305 @@ func TestIntegration_FullWorkflow(t *testing.T) {
 
 	t.Log("=== Full Workflow Integration Test Completed ===")
 }
+
+// ============================================
+// Multi-Chain Signing Integration Tests
+// ============================================
+
+func TestIntegration_Stellar_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeStellar,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Stellar wallet: %v", err)
+	}
+	t.Logf("Created Stellar wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Stellar().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Cosmos_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeCosmos,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Cosmos wallet: %v", err)
+	}
+	t.Logf("Created Cosmos wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Cosmos().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Sui_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeSui,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Sui wallet: %v", err)
+	}
+	t.Logf("Created Sui wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Sui().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Tron_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeTron,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Tron wallet: %v", err)
+	}
+	t.Logf("Created Tron wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Tron().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Bitcoin_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeBitcoinSegwit,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Bitcoin wallet: %v", err)
+	}
+	t.Logf("Created Bitcoin wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Bitcoin().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Near_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeNear,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Near wallet: %v", err)
+	}
+	t.Logf("Created Near wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Near().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Ton_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeTon,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Ton wallet: %v", err)
+	}
+	t.Logf("Created Ton wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Ton().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Starknet_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeStarknet,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Starknet wallet: %v", err)
+	}
+	t.Logf("Created Starknet wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Starknet().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Aptos_RawSign(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeAptos,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Aptos wallet: %v", err)
+	}
+	t.Logf("Created Aptos wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Aptos().RawSign(ctx, wallet.ID, "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
+	if err != nil {
+		t.Fatalf("Failed to raw sign: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+// Spark Integration Tests
+
+func TestIntegration_Spark_GetBalance(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeSpark,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Spark wallet: %v", err)
+	}
+	t.Logf("Created Spark wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Spark().GetBalance(ctx, wallet.ID, SparkNetworkMainnet, "")
+	if err != nil {
+		t.Fatalf("Failed to get Spark balance: %v", err)
+	}
+
+	t.Logf("Balance: %s", resp.Data.Balance)
+}
+
+func TestIntegration_Spark_GetStaticDepositAddress(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeSpark,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Spark wallet: %v", err)
+	}
+	t.Logf("Created Spark wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Spark().GetStaticDepositAddress(ctx, wallet.ID, SparkNetworkMainnet, "")
+	if err != nil {
+		t.Fatalf("Failed to get static deposit address: %v", err)
+	}
+
+	t.Logf("Deposit address: %s", resp.Data.Address)
+	if resp.Data.Address == "" {
+		t.Error("Expected deposit address to be returned")
+	}
+}
+
+func TestIntegration_Spark_SignMessage(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeSpark,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Spark wallet: %v", err)
+	}
+	t.Logf("Created Spark wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Spark().SignMessage(ctx, wallet.ID, "Hello from Spark integration test!", false, SparkNetworkMainnet, "")
+	if err != nil {
+		t.Fatalf("Failed to sign message: %v", err)
+	}
+
+	t.Logf("Signature: %s", resp.Data.Signature)
+	if resp.Data.Signature == "" {
+		t.Error("Expected signature to be returned")
+	}
+}
+
+func TestIntegration_Spark_CreateLightningInvoice(t *testing.T) {
+	cfg := skipIfNoCredentials(t)
+	ctx := context.Background()
+
+	wallet, err := cfg.client.Wallets().Create(ctx, &CreateWalletRequest{
+		ChainType: ChainTypeSpark,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create Spark wallet: %v", err)
+	}
+	t.Logf("Created Spark wallet: %s (address: %s)", wallet.ID, wallet.Address)
+
+	resp, err := cfg.client.Wallets().Spark().CreateLightningInvoice(ctx, wallet.ID, 1000, SparkNetworkMainnet, "")
+	if err != nil {
+		t.Fatalf("Failed to create Lightning invoice: %v", err)
+	}
+
+	t.Logf("Invoice: %s", resp.Data.Invoice.EncodedInvoice)
+	if resp.Data.Invoice.EncodedInvoice == "" {
+		t.Error("Expected encoded invoice to be returned")
+	}
+}

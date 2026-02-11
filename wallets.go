@@ -62,6 +62,56 @@ func (s *WalletsService) Solana() *SolanaWalletsService {
 	return &SolanaWalletsService{client: s.client}
 }
 
+// Stellar returns the Stellar-specific wallet operations.
+func (s *WalletsService) Stellar() *StellarWalletsService {
+	return &StellarWalletsService{client: s.client}
+}
+
+// Cosmos returns the Cosmos-specific wallet operations.
+func (s *WalletsService) Cosmos() *CosmosWalletsService {
+	return &CosmosWalletsService{client: s.client}
+}
+
+// Sui returns the Sui-specific wallet operations.
+func (s *WalletsService) Sui() *SuiWalletsService {
+	return &SuiWalletsService{client: s.client}
+}
+
+// Tron returns the Tron-specific wallet operations.
+func (s *WalletsService) Tron() *TronWalletsService {
+	return &TronWalletsService{client: s.client}
+}
+
+// Bitcoin returns the Bitcoin SegWit-specific wallet operations.
+func (s *WalletsService) Bitcoin() *BitcoinWalletsService {
+	return &BitcoinWalletsService{client: s.client}
+}
+
+// Near returns the NEAR-specific wallet operations.
+func (s *WalletsService) Near() *NearWalletsService {
+	return &NearWalletsService{client: s.client}
+}
+
+// Ton returns the TON-specific wallet operations.
+func (s *WalletsService) Ton() *TonWalletsService {
+	return &TonWalletsService{client: s.client}
+}
+
+// Starknet returns the Starknet-specific wallet operations.
+func (s *WalletsService) Starknet() *StarknetWalletsService {
+	return &StarknetWalletsService{client: s.client}
+}
+
+// Aptos returns the Aptos-specific wallet operations.
+func (s *WalletsService) Aptos() *AptosWalletsService {
+	return &AptosWalletsService{client: s.client}
+}
+
+// Spark returns the Spark (Bitcoin Lightning)-specific wallet operations.
+func (s *WalletsService) Spark() *SparkWalletsService {
+	return &SparkWalletsService{client: s.client}
+}
+
 // Create creates a new wallet.
 func (s *WalletsService) Create(ctx context.Context, req *CreateWalletRequest) (*Wallet, error) {
 	u := fmt.Sprintf("%s/wallets", s.client.baseURL)
