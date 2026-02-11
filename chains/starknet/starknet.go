@@ -15,9 +15,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/consensys/gnark-crypto/ecc/stark-curve/fp"
+	pedersenhash "github.com/consensys/gnark-crypto/ecc/stark-curve/pedersen-hash"
 	privy "github.com/vadimzhukck/privy-sdk-go"
-
-	"github.com/NethermindEth/starknet.go/curve"
 )
 
 // Well-known StarkNet constants.
@@ -323,7 +323,21 @@ func (h *Helper) callRPC(ctx context.Context, method string, params any) (json.R
 // computeHashOnElements computes the Pedersen hash chain: h(h(...h(h(0, a0), a1)..., an), len).
 // This matches StarkNet's standard hash-on-elements convention.
 func computeHashOnElements(elements []*big.Int) *big.Int {
-	return curve.ComputeHashOnElements(elements)
+	elems := make([]*fp.Element, len(elements)+1)
+	for i, e := range elements {
+		var el fp.Element
+		el.SetBigInt(e)
+		elems[i] = &el
+	}
+	// Append length per StarkNet convention
+	var lenEl fp.Element
+	lenEl.SetUint64(uint64(len(elements)))
+	elems[len(elements)] = &lenEl
+
+	hash := pedersenhash.PedersenArray(elems...)
+	var result big.Int
+	hash.BigInt(&result)
+	return &result
 }
 
 // hexToBigInt converts a hex string to *big.Int.
