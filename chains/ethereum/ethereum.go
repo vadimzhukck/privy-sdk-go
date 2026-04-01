@@ -7,10 +7,39 @@ package ethereum
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math/big"
+	"strings"
 
 	privy "github.com/vadimzhukck/privy-sdk-go"
 )
+
+var (
+	// ErrZeroAmount is returned when the transfer amount is zero or negative.
+	ErrZeroAmount = errors.New("ethereum: transfer amount must be greater than zero")
+	// ErrInvalidAmount is returned when the amount string cannot be parsed.
+	ErrInvalidAmount = errors.New("ethereum: invalid amount format")
+)
+
+// parseAmount parses a wei amount from either a hex string (0x-prefixed) or decimal string.
+// Returns an error if the value is zero or negative.
+func parseAmount(amount string) (*big.Int, error) {
+	v := new(big.Int)
+	if strings.HasPrefix(amount, "0x") || strings.HasPrefix(amount, "0X") {
+		if _, ok := v.SetString(amount[2:], 16); !ok {
+			return nil, ErrInvalidAmount
+		}
+	} else {
+		if _, ok := v.SetString(amount, 10); !ok {
+			return nil, ErrInvalidAmount
+		}
+	}
+	if v.Sign() <= 0 {
+		return nil, ErrZeroAmount
+	}
+	return v, nil
+}
 
 // Helper provides convenience methods for Ethereum operations using Privy wallets.
 type Helper struct {
@@ -56,7 +85,16 @@ func NewHelper(client *privy.Client, opts ...Option) *Helper {
 // amount is in wei as a hex string (e.g. "0xDE0B6B3A7640000" for 1 ETH)
 // or decimal string (e.g. "1000000000000000000").
 // Returns the transaction hash.
+//
+// NOTE: When sweeping the entire wallet balance, callers must subtract the
+// estimated gas cost (gasLimit * gasPrice) from the amount. Sending the full
+// balance as value will cause the transaction to be rejected because
+// value + gas > balance. Use TransferSponsored for gas-sponsored sweeps.
 func (h *Helper) Transfer(ctx context.Context, walletID string, destination string, amount string) (string, error) {
+	if _, err := parseAmount(amount); err != nil {
+		return "", err
+	}
+
 	tx := &privy.EthereumTransaction{
 		To:    destination,
 		Value: amount,
@@ -71,7 +109,12 @@ func (h *Helper) Transfer(ctx context.Context, walletID string, destination stri
 }
 
 // TransferSponsored sends native ETH with gas sponsorship enabled.
+// Because gas is sponsored, the full amount can be sent without deducting gas costs.
 func (h *Helper) TransferSponsored(ctx context.Context, walletID string, destination string, amount string) (string, error) {
+	if _, err := parseAmount(amount); err != nil {
+		return "", err
+	}
+
 	tx := &privy.EthereumTransaction{
 		To:    destination,
 		Value: amount,
