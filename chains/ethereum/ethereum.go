@@ -128,6 +128,35 @@ func (h *Helper) TransferSponsored(ctx context.Context, walletID string, destina
 	return resp.Data.Hash, nil
 }
 
+// TransferERC20 sends an ERC-20 token transfer from a Privy wallet.
+// contractAddress is the token contract address.
+// destination is the recipient address.
+// amount is the token amount in base units (e.g. "1000000" for 1 USDC with 6 decimals).
+func (h *Helper) TransferERC20(ctx context.Context, walletID string, contractAddress string, destination string, amount string) (string, error) {
+	amt, err := parseAmount(amount)
+	if err != nil {
+		return "", err
+	}
+
+	// ERC-20 transfer(address,uint256) function selector = 0xa9059cbb
+	// Encode: 4 bytes selector + 32 bytes address (left-padded) + 32 bytes amount (left-padded)
+	paddedAddr := fmt.Sprintf("%064s", strings.TrimPrefix(destination, "0x"))
+	paddedAmt := fmt.Sprintf("%064x", amt)
+	data := "0xa9059cbb" + paddedAddr + paddedAmt
+
+	tx := &privy.EthereumTransaction{
+		To:    contractAddress,
+		Data:  data,
+		Value: "0x0", // No ETH value for ERC-20 transfer
+	}
+
+	resp, err := h.client.Wallets().Ethereum().SendTransaction(ctx, walletID, tx, h.chainID, false, "")
+	if err != nil {
+		return "", fmt.Errorf("ethereum: erc20 transfer: %w", err)
+	}
+	return resp.Data.Hash, nil
+}
+
 // SendTransaction sends a custom Ethereum transaction.
 // This gives full control over gas, data, nonce, etc.
 func (h *Helper) SendTransaction(ctx context.Context, walletID string, tx *privy.EthereumTransaction, sponsor bool) (string, error) {
