@@ -304,12 +304,21 @@ func (s *WalletsService) GetTransactions(ctx context.Context, walletID string, o
 
 	u = u + "?" + params.Encode()
 
-	var resp PaginatedResponse[Transaction]
-	if err := s.client.doRequest(ctx, "GET", u, nil, &resp); err != nil {
+	var raw struct {
+		Transactions []Transaction `json:"transactions"`
+		NextCursor   *string       `json:"next_cursor"`
+	}
+	if err := s.client.doRequest(ctx, "GET", u, nil, &raw); err != nil {
 		return nil, err
 	}
 
-	return &resp, nil
+	resp := &PaginatedResponse[Transaction]{
+		Data: raw.Transactions,
+	}
+	if raw.NextCursor != nil {
+		resp.NextCursor = *raw.NextCursor
+	}
+	return resp, nil
 }
 
 // InitializeImport initializes the wallet import process.
