@@ -10,9 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	solanago "github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/system"
+	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
 	privy "github.com/vadimzhukck/privy-sdk-go"
 )
@@ -190,4 +192,133 @@ func (h *Helper) Transfer(ctx context.Context, walletID string, destination stri
 	}
 
 	return resp.Data.Hash, nil
+}
+
+// TransferSPL sends an SPL token from a Privy wallet to a destination address.
+// mintAddress is the SPL token mint (e.g. USDC mint).
+// destination is the recipient's wallet address (not their ATA).
+// amount is in token base units (e.g. 1000000 for 1 USDC with 6 decimals).
+// If the destination's Associated Token Account does not exist, the transaction
+// will include a CreateAssociatedTokenAccount instruction funded by the sender.
+// Returns the transaction signature (hash).
+func (h *Helper) TransferSPL(ctx context.Context, walletID string, mintAddress string, destination string, amount uint64) (string, error) {
+	if amount == 0 {
+		return "", ErrZeroAmount
+	}
+
+	// Get wallet address from Privy
+	wallet, err := h.client.Wallets().Get(ctx, walletID)
+	if err != nil {
+		return "", fmt.Errorf("solana: get wallet: %w", err)
+	}
+
+	// Parse addresses
+	fromPubKey, err := solanago.PublicKeyFromBase58(wallet.Address)
+	if err != nil {
+		return "", fmt.Errorf("solana: invalid sender address %q: %w", wallet.Address, err)
+	}
+
+	toPubKey, err := solanago.PublicKeyFromBase58(destination)
+	if err != nil {
+		return "", fmt.Errorf("solana: invalid destination address %q: %w", destination, err)
+	}
+
+	mintPubKey, err := solanago.PublicKeyFromBase58(mintAddress)
+	if err != nil {
+		return "", fmt.Errorf("solana: invalid mint address %q: %w", mintAddress, err)
+	}
+
+	// Derive Associated Token Accounts
+	sourceATA, _, err := solanago.FindAssociatedTokenAddress(fromPubKey, mintPubKey)
+	if err != nil {
+		return "", fmt.Errorf("solana: derive source ATA: %w", err)
+	}
+
+	destATA, _, err := solanago.FindAssociatedTokenAddress(toPubKey, mintPubKey)
+	if err != nil {
+		return "", fmt.Errorf("solana: derive destination ATA: %w", err)
+	}
+
+	// Build SPL Token TransferChecked instruction (includes mint + decimals for validation)
+	var instructions []solanago.Instruction
+	transferIx := token.NewTransferCheckedInstruction(
+		amount,
+		6, // USDC decimals
+		sourceATA,
+		mintPubKey,
+		destATA,
+		fromPubKey,
+		nil, // no multisig signers
+	).Build()
+	instructions = append(instructions, transferIx)
+
+	// Get recent blockhash
+	recent, err := h.rpcClient.GetLatestBlockhash(ctx, rpc.CommitmentFinalized)
+	if err != nil {
+		return "", fmt.Errorf("solana: get recent blockhash: %w", err)
+	}
+
+	// Build transaction
+	tx, err := solanago.NewTransaction(
+		instructions,
+		recent.Value.Blockhash,
+		solanago.TransactionPayer(fromPubKey),
+	)
+	if err != nil {
+		return "", fmt.Errorf("solana: build transaction: %w", err)
+	}
+
+	// Privy expects a full transaction with placeholder signatures (one per required signer).
+	// solanago.NewTransaction doesn't add them, so we prepend empty 64-byte signatures.
+	for len(tx.Signatures) < int(tx.Message.Header.NumRequiredSignatures) {
+		tx.Signatures = append(tx.Signatures, solanago.Signature{})
+	}
+
+	// Serialize to base64
+	txBase64, err := tx.ToBase64()
+	if err != nil {
+		return "", fmt.Errorf("solana: serialize transaction: %w", err)
+	}
+
+	// Sign and send via Privy
+	resp, err := h.client.Wallets().Solana().SignAndSendTransactionWithCAIP2(
+		ctx, walletID, txBase64, h.caip2, "",
+	)
+	if err != nil {
+		return "", fmt.Errorf("solana: sign and send spl transfer: %w", err)
+	}
+
+	return resp.Data.Hash, nil
+}
+
+// GetSPLBalance returns the SPL token balance for a wallet address and mint.
+func (h *Helper) GetSPLBalance(ctx context.Context, walletAddress string, mintAddress string) (uint64, error) {
+	walletPubKey, err := solanago.PublicKeyFromBase58(walletAddress)
+	if err != nil {
+		return 0, fmt.Errorf("solana: invalid wallet address: %w", err)
+	}
+	mintPubKey, err := solanago.PublicKeyFromBase58(mintAddress)
+	if err != nil {
+		return 0, fmt.Errorf("solana: invalid mint address: %w", err)
+	}
+	ataAddr, _, err := solanago.FindAssociatedTokenAddress(walletPubKey, mintPubKey)
+	if err != nil {
+		return 0, fmt.Errorf("solana: derive ATA: %w", err)
+	}
+	balance, err := h.rpcClient.GetTokenAccountBalance(ctx, ataAddr, rpc.CommitmentConfirmed)
+	if err != nil {
+		// Account not found = balance is 0 (ATA closed or never created)
+		if strings.Contains(err.Error(), "could not find account") || strings.Contains(err.Error(), "not found") {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("solana: get token balance: %w", err)
+	}
+	if balance == nil || balance.Value == nil {
+		return 0, nil
+	}
+	amount, err := strconv.ParseUint(balance.Value.Amount, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("solana: parse balance amount: %w", err)
+	}
+	return amount, nil
 }

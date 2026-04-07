@@ -7,9 +7,11 @@ package ethereum
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
+	"net/http"
 	"strings"
 
 	privy "github.com/vadimzhukck/privy-sdk-go"
@@ -166,4 +168,55 @@ func (h *Helper) SendTransaction(ctx context.Context, walletID string, tx *privy
 	}
 
 	return resp.Data.Hash, nil
+}
+
+// GetERC20Balance returns the ERC-20 token balance for a wallet address.
+// Returns the raw balance as a decimal string (e.g. "9500000" for 9.5 USDC).
+func (h *Helper) GetERC20Balance(ctx context.Context, walletAddress string, contractAddress string) (string, error) {
+	// balanceOf(address) selector = 0x70a08231
+	paddedAddr := fmt.Sprintf("%064s", strings.TrimPrefix(strings.ToLower(walletAddress), "0x"))
+	data := "0x70a08231" + paddedAddr
+
+	rpcURL := "https://mainnet.base.org"
+	if h.chainID == 1 {
+		rpcURL = "https://eth.llamarpc.com"
+	} else if h.chainID == 84532 {
+		rpcURL = "https://sepolia.base.org"
+	} else if h.chainID == 8453 {
+		rpcURL = "https://mainnet.base.org"
+	}
+
+	payload := fmt.Sprintf(`{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"to":"%s","data":"%s"},"latest"]}`, contractAddress, data)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", rpcURL, strings.NewReader(payload))
+	if err != nil {
+		return "", fmt.Errorf("ethereum: create balance request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("ethereum: balance request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Result string `json:"result"`
+		Error  *struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("ethereum: decode balance response: %w", err)
+	}
+	if result.Error != nil {
+		return "", fmt.Errorf("ethereum: rpc error: %s", result.Error.Message)
+	}
+
+	// Parse hex result to decimal string
+	balance := new(big.Int)
+	if _, ok := balance.SetString(strings.TrimPrefix(result.Result, "0x"), 16); !ok {
+		return "", fmt.Errorf("ethereum: parse balance hex: %s", result.Result)
+	}
+	return balance.String(), nil
 }

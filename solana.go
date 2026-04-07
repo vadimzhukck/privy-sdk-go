@@ -14,6 +14,7 @@ type SolanaWalletsService struct {
 // SolanaSignAndSendTransactionRequest represents the params for Solana signAndSendTransaction.
 type SolanaSignAndSendTransactionRequest struct {
 	Transaction string `json:"transaction"` // Base64 encoded transaction
+	Encoding    string `json:"encoding"`    // Must be "base64"
 }
 
 // SolanaSignTransactionRequest represents the params for Solana signTransaction.
@@ -39,6 +40,7 @@ func (s *SolanaWalletsService) SignAndSendTransaction(ctx context.Context, walle
 		CAIP2:  "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", // Mainnet
 		Params: &SolanaSignAndSendTransactionRequest{
 			Transaction: transaction,
+			Encoding:    "base64",
 		},
 	}
 
@@ -62,6 +64,7 @@ func (s *SolanaWalletsService) SignAndSendTransactionOnDevnet(ctx context.Contex
 		CAIP2:  "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1", // Devnet
 		Params: &SolanaSignAndSendTransactionRequest{
 			Transaction: transaction,
+			Encoding:    "base64",
 		},
 	}
 
@@ -137,6 +140,7 @@ func (s *SolanaWalletsService) SignAndSendTransactionWithCAIP2(ctx context.Conte
 		CAIP2:  caip2,
 		Params: &SolanaSignAndSendTransactionRequest{
 			Transaction: transaction,
+			Encoding:    "base64",
 		},
 	}
 

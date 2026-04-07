@@ -169,9 +169,11 @@ const (
 type TransactionDetailsType string
 
 const (
-	TransactionDetailsTypeSend     TransactionDetailsType = "send"     // Outgoing transfer
-	TransactionDetailsTypeReceive  TransactionDetailsType = "receive"  // Incoming transfer
-	TransactionDetailsTypeTransfer TransactionDetailsType = "transfer" // Generic transfer
+	TransactionDetailsTypeSend             TransactionDetailsType = "send"              // Outgoing transfer
+	TransactionDetailsTypeReceive          TransactionDetailsType = "receive"           // Incoming transfer
+	TransactionDetailsTypeTransferSent     TransactionDetailsType = "transfer_sent"     // Outgoing transfer (Privy v2)
+	TransactionDetailsTypeTransferReceived TransactionDetailsType = "transfer_received" // Incoming transfer (Privy v2)
+	TransactionDetailsTypeTransfer         TransactionDetailsType = "transfer"          // Generic transfer
 	TransactionDetailsTypeSwap     TransactionDetailsType = "swap"     // Token swap
 	TransactionDetailsTypeApprove  TransactionDetailsType = "approve"  // Token approval
 	TransactionDetailsTypeMint     TransactionDetailsType = "mint"     // Token minting
@@ -309,8 +311,9 @@ type TransactionDetails struct {
 	Recipient    string                 `json:"recipient,omitempty"`     // Recipient address
 	Chain        string                 `json:"chain,omitempty"`         // Chain identifier
 	Asset        string                 `json:"asset,omitempty"`         // Asset identifier
-	RawValue     string                 `json:"raw_value,omitempty"`     // Raw value as string
-	DisplayValues *TransactionDisplay   `json:"display_values,omitempty"` // Human-readable values
+	RawValue         string                 `json:"raw_value,omitempty"`          // Raw value as string
+	RawValueDecimals int                    `json:"raw_value_decimals,omitempty"` // Decimal places for raw value
+	DisplayValues map[string]string      `json:"display_values,omitempty"` // Human-readable values (key=asset, value=amount)
 }
 
 // TransactionDisplay contains human-readable transaction values.
