@@ -185,7 +185,7 @@ func (h *Helper) Transfer(ctx context.Context, walletID string, destination stri
 
 	// Sign and send via Privy
 	resp, err := h.client.Wallets().Solana().SignAndSendTransactionWithCAIP2(
-		ctx, walletID, txBase64, h.caip2, "",
+		ctx, walletID, txBase64, h.caip2, true, "",
 	)
 	if err != nil {
 		return "", fmt.Errorf("solana: sign and send: %w", err)
@@ -282,7 +282,7 @@ func (h *Helper) TransferSPL(ctx context.Context, walletID string, mintAddress s
 
 	// Sign and send via Privy
 	resp, err := h.client.Wallets().Solana().SignAndSendTransactionWithCAIP2(
-		ctx, walletID, txBase64, h.caip2, "",
+		ctx, walletID, txBase64, h.caip2, true, "",
 	)
 	if err != nil {
 		return "", fmt.Errorf("solana: sign and send spl transfer: %w", err)

@@ -107,7 +107,7 @@ func TestE2E_Solana_SignAndSendTransaction(t *testing.T) {
 
 	transaction := "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDAENCQUdHRVJFRFNPTEFOQVRSQU5TQUNUSQlPTg=="
 
-	resp, err := client.Wallets().Solana().SignAndSendTransaction(ctx, wallet.ID, transaction, "")
+	resp, err := client.Wallets().Solana().SignAndSendTransaction(ctx, wallet.ID, transaction, false, "")
 	if err != nil {
 		t.Fatalf("Failed to sign and send transaction: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestE2E_Solana_SignAndSendTransactionOnDevnet(t *testing.T) {
 
 	transaction := "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDAENCQUdHRVJFRFNPTEFOQVRSQU5TQUNUSQlPTg=="
 
-	resp, err := client.Wallets().Solana().SignAndSendTransactionOnDevnet(ctx, wallet.ID, transaction, "")
+	resp, err := client.Wallets().Solana().SignAndSendTransactionOnDevnet(ctx, wallet.ID, transaction, false, "")
 	if err != nil {
 		t.Fatalf("Failed to sign and send transaction on devnet: %v", err)
 	}
@@ -162,7 +162,7 @@ func TestE2E_Solana_SignAndSendTransactionWithCustomCAIP2(t *testing.T) {
 	transaction := "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAEDAENCQUdHRVJFRFNPTEFOQVRSQU5TQUNUSQlPTg=="
 	customCAIP2 := "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" // Mainnet
 
-	resp, err := client.Wallets().Solana().SignAndSendTransactionWithCAIP2(ctx, wallet.ID, transaction, customCAIP2, "")
+	resp, err := client.Wallets().Solana().SignAndSendTransactionWithCAIP2(ctx, wallet.ID, transaction, customCAIP2, false, "")
 	if err != nil {
 		t.Fatalf("Failed to sign and send with custom CAIP2: %v", err)
 	}

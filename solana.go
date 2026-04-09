@@ -29,7 +29,7 @@ type SolanaSignMessageRequest struct {
 }
 
 // SignAndSendTransaction signs and sends a Solana transaction.
-func (s *SolanaWalletsService) SignAndSendTransaction(ctx context.Context, walletID string, transaction string, signature string) (*SignatureResponse, error) {
+func (s *SolanaWalletsService) SignAndSendTransaction(ctx context.Context, walletID string, transaction string, sponsor bool, signature string) (*SignatureResponse, error) {
 	if s == nil || s.client == nil {
 		return nil, ErrNilClient
 	}
@@ -42,6 +42,7 @@ func (s *SolanaWalletsService) SignAndSendTransaction(ctx context.Context, walle
 			Transaction: transaction,
 			Encoding:    "base64",
 		},
+		Sponsor: sponsor,
 	}
 
 	var resp SignatureResponse
@@ -53,7 +54,7 @@ func (s *SolanaWalletsService) SignAndSendTransaction(ctx context.Context, walle
 }
 
 // SignAndSendTransactionOnDevnet signs and sends a Solana transaction on devnet.
-func (s *SolanaWalletsService) SignAndSendTransactionOnDevnet(ctx context.Context, walletID string, transaction string, signature string) (*SignatureResponse, error) {
+func (s *SolanaWalletsService) SignAndSendTransactionOnDevnet(ctx context.Context, walletID string, transaction string, sponsor bool, signature string) (*SignatureResponse, error) {
 	if s == nil || s.client == nil {
 		return nil, ErrNilClient
 	}
@@ -66,6 +67,7 @@ func (s *SolanaWalletsService) SignAndSendTransactionOnDevnet(ctx context.Contex
 			Transaction: transaction,
 			Encoding:    "base64",
 		},
+		Sponsor: sponsor,
 	}
 
 	var resp SignatureResponse
@@ -129,7 +131,7 @@ func (s *SolanaWalletsService) SignMessage(ctx context.Context, walletID string,
 }
 
 // SignAndSendTransactionWithCAIP2 signs and sends a Solana transaction with a custom CAIP-2 identifier.
-func (s *SolanaWalletsService) SignAndSendTransactionWithCAIP2(ctx context.Context, walletID string, transaction string, caip2 string, signature string) (*SignatureResponse, error) {
+func (s *SolanaWalletsService) SignAndSendTransactionWithCAIP2(ctx context.Context, walletID string, transaction string, caip2 string, sponsor bool, signature string) (*SignatureResponse, error) {
 	if s == nil || s.client == nil {
 		return nil, ErrNilClient
 	}
@@ -142,6 +144,7 @@ func (s *SolanaWalletsService) SignAndSendTransactionWithCAIP2(ctx context.Conte
 			Transaction: transaction,
 			Encoding:    "base64",
 		},
+		Sponsor: sponsor,
 	}
 
 	var resp SignatureResponse
